@@ -11,7 +11,7 @@
         WORKDIR /app
         RUN virtualenv /env
         ADD requirements.txt /app/requirements.txt
-        RUN /env/pip install requirements.txt
+        RUN /env/bin/pip install requirements.txt
         ADD . /app
         
         CMD []
