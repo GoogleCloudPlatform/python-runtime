@@ -8,3 +8,4 @@ ONBUILD ADD . /app
 
 EXPOSE 8080
 CMD []
+ENTRYPOINT ["/env/bin/python", "main.py"]
