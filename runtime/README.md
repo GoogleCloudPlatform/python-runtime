@@ -17,7 +17,7 @@ It is based on [`google/python`](https://index.docker.io/u/google/python) base i
 ### Notes
 
 - Your application sources are copied into the `/app` directory.
-- A virtualenv with your dependencies is created under the `/env' directory.
+- A virtualenv with your dependencies is created under the `/env` directory.
 
 ## Notes
 
