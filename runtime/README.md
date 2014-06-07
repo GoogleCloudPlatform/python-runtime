@@ -23,9 +23,8 @@ It is based on [`google/python`](https://index.docker.io/u/google/python) base i
 
 The image assumes that your application:
 
-- has a [`requirements.txt`](https://pip.pypa.io/en/latest/user_guide.html#requirements-files) file to specify its dependencies
 - listens on port `8080`
 - either has a `main.py` script as entrypoint or defines `ENTRYPOINT ["/env/bin/python", "/app/some_other_file.py"]` in its `Dockerfile`
 
 
-When building your application docker image, dependencies of your application are automatically fetched in a virtualenv using `pip install`.
+When building your application docker image, dependencies of your application are automatically fetched in a virtualenv using `pip install` if a [`requirements.txt`](https://pip.pypa.io/en/latest/user_guide.html#requirements-files) file is found.

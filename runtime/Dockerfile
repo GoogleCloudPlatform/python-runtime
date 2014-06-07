@@ -1,10 +1,9 @@
 FROM google/python
 
 WORKDIR /app
-ONBUILD RUN virtualenv /env
-ONBUILD ADD requirements.txt /app/requirements.txt
-ONBUILD RUN /env/bin/pip install -r /app/requirements.txt
 ONBUILD ADD . /app
+ONBUILD RUN virtualenv /env
+ONBUILD RUN [ -f /app/requirements.txt ] && /env/bin/pip install -r /app/requirements.txt || true
 
 EXPOSE 8080
 CMD []
