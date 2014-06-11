@@ -31,6 +31,6 @@ The image assumes that your application:
 When building your application docker image, `ONBUILD` triggers:
 
 - Create a new virtualenv under the `/env` directory in the container
-- Fetch the dependencies listed in `requirements.txt` into the virtualenv using `pip install`
+- Fetch the dependencies listed in `requirements.txt` into the virtualenv using `pip install` and cache them appropriatly.
 - Copy the application sources under the `/app` directory in the container
 
