@@ -1,8 +1,8 @@
 # google/python-runtime
 
-[`google/python-runtime`](https://index.docker.io/u/google/python-runtime) is a [docker](https://docker.io) base image for easily running [Python](http://python.org) application.
+[`google/python-runtime`](https://index.docker.io/u/google/python-runtime) is a [docker](https://docker.io) base image that makes it easy to dockerize standard [Python](http://python.org) application.
 
-It can automatically bundle a python application with its dependencies and set the default entrypoint with no additional Dockerfile instructions.
+It can automatically bundle a Python application and its dependencies with a single line Dockerfile.
 
 It is based on [`google/python`](https://index.docker.io/u/google/python) base image.
 
@@ -31,6 +31,6 @@ The image assumes that your application:
 When building your application docker image, `ONBUILD` triggers:
 
 - Create a new virtualenv under the `/env` directory in the container
-- Fetch the dependencies listed in `requirements.txt` into the virtualenv using `pip install` and cache them appropriatly.
+- Fetch the dependencies listed in `requirements.txt` into the virtualenv using `pip install` and leverage docker caching appropriately
 - Copy the application sources under the `/app` directory in the container
 
