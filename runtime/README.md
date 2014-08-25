@@ -1,6 +1,6 @@
 # google/python-runtime
 
-[`google/python-runtime`](https://index.docker.io/u/google/python-runtime) is a [docker](https://docker.io) base image that makes it easy to dockerize standard [Python](http://python.org) application.
+[`google/python-runtime`](https://index.docker.io/u/google/python-runtime) is a [docker](https://docker.io) base image that makes it easy to dockerize a standard [Python](http://python.org) application.
 
 It can automatically bundle a Python application and its dependencies with a single line Dockerfile.
 
