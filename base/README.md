@@ -13,7 +13,7 @@ It serves as a base for the [`google/python-runtime`](https://index.docker.io/u/
         WORKDIR /app
         RUN virtualenv /env
         ADD requirements.txt /app/requirements.txt
-        RUN /env/bin/pip install requirements.txt
+        RUN /env/bin/pip install -r requirements.txt
         ADD . /app
         
         CMD []
