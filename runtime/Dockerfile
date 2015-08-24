@@ -29,6 +29,7 @@ ONBUILD ADD . /app
 # /env/bin/activate
 ENV VIRTUAL_ENV /env
 ENV PATH /env/bin:$PATH
+ENV PORT 8080
 
 CMD []
 # The user's Dockerfile must specify an entrypoint.
