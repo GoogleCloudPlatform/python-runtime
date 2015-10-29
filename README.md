@@ -1,36 +1,40 @@
-# google/python-runtime
+# Google Cloud Platform Python Docker Image
 
-[`google/python-runtime`](https://index.docker.io/u/google/python-runtime) is a [docker](https://docker.io) base image that makes it easy to dockerize a standard [Python](http://python.org) application.
+This repository contains the source for the `gcr.io/google_appengine/python` [docker](https://docker.io) base image. This image can be used as the base image for running applications on [Google App Engine Managed VMs](https://cloud.google.com/appengine), [Google Container Engine](https://cloud.google.com/container-engine), or any other Docker host.
 
-It can automatically bundle a Python application and its dependencies with a single line Dockerfile.
+This image is based on Debian Jessie and contains packages required to build most of the popular Python libraries.
 
-It is based on [`google/python`](https://index.docker.io/u/google/python) base image.
+## App Engine
 
-## Usage
+To generate a Dockerfile that uses this image as a base, use the [`Cloud SDK`](https://cloud.google.com/sdk/gcloud/reference/preview/app/gen-config):
 
-- Create a Dockerfile in your python application directory with the following content:
+    gcloud preview app gen-config --custom 
 
-        FROM google/python-runtime
+You can then modify the `Dockerfile` and `.dockerignore` as needed for you application.
 
-- Run the following command in your application directory:
-
-        docker build -t app .
-
-## Sample
+## Container Engine & other Docker hosts.
   
-See the [sources](/hello) for [`google/python-hello`](https://index.docker.io/u/google/python-hello) based on this image.
+For other docker hosts, you'll need to create a `Dockerfile` based on this image that copies your application code, installs dependencies, and declares an command or entrypoint. For example:
 
-## Notes
-
-The image assumes that your application:
-
-- has a [`requirements.txt`](https://pip.pypa.io/en/latest/user_guide.html#requirements-files) file to specify its dependencies
-- listens on port `8080`
-- either has a `main.py` script as entrypoint or defines `ENTRYPOINT ["/env/bin/python", "/app/some_other_file.py"]` in its `Dockerfile`
-
-When building your application docker image, `ONBUILD` triggers:
-
-- Create a new virtualenv under the `/env` directory in the container
-- Fetch the dependencies listed in `requirements.txt` into the virtualenv using `pip install` and leverage docker caching appropriately
-- Copy the application sources under the `/app` directory in the container
-
+    FROM gcr.io/google_appengine/python
+    
+    # Create a virtualenv for dependencies. This isolates these packages from
+    # system-level packages.
+    RUN virtualenv /env
+    
+    # Setting these environment variables are the same as running
+    # source /env/bin/activate
+    ENV VIRTUAL_ENV /env
+    ENV PATH /env/bin:$PATH
+    
+    # Copy the application's requirements.txt and run pip to install all
+    # dependencies into the virtualenv.
+    ADD requirements.txt /app/requirements.txt
+    RUN pip install -r /app/requirements.txt
+    
+    # Add the application source code.
+    ADD . /app
+    
+    # Run a WSGI server to serve the application. gunicorn must be declared as
+    # a dependency in requirements.txt.
+    CMD gunicorn -b :$PORT main:app
