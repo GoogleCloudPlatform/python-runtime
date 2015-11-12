@@ -6,7 +6,7 @@ FROM gcr.io/google_appengine/base
 # Python libraries.
 RUN apt-get -q update && \
  apt-get install --no-install-recommends -y -q \
-   python2.7 python3.4 python-pip python-dev build-essential git mercurial \
+   python2.7 python3.4 python2.7-dev python3.4-dev python-pip build-essential git mercurial \
    libffi-dev libssl-dev libxml2-dev \
    libxslt1-dev libpq-dev libmysqlclient-dev libcurl4-openssl-dev \
    libjpeg-dev zlib1g-dev libpng12-dev && \
