@@ -12,6 +12,9 @@ RUN apt-get -q update && \
    libjpeg-dev zlib1g-dev libpng12-dev && \
  apt-get clean && rm /var/lib/apt/lists/*_*
 
+# Setup locale. This prevents Python 3 IO encoding issues.
+ENV LANG C.UTF-8
+
 # Upgrade pip (debian package version tends to run a few version behind) and
 # install virtualenv system-wide.
 RUN pip install --upgrade pip virtualenv
