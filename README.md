@@ -38,3 +38,11 @@ For other docker hosts, you'll need to create a `Dockerfile` based on this image
     # Run a WSGI server to serve the application. gunicorn must be declared as
     # a dependency in requirements.txt.
     CMD gunicorn -b :$PORT main:app
+
+## Contributing changes
+
+* See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Licensing
+
+* See [LICENSE](LICENSE)
