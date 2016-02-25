@@ -9,7 +9,9 @@ RUN apt-get -q update && \
    python2.7 python3.4 python2.7-dev python3.4-dev python-pip build-essential git mercurial \
    libffi-dev libssl-dev libxml2-dev \
    libxslt1-dev libpq-dev libmysqlclient-dev libcurl4-openssl-dev \
-   libjpeg-dev zlib1g-dev libpng12-dev && \
+   libjpeg-dev zlib1g-dev libpng12-dev \
+   gfortran libblas-dev liblapack-dev libatlas-dev libquadmath0 \
+   && \
  apt-get clean && rm /var/lib/apt/lists/*_*
 
 # Setup locale. This prevents Python 3 IO encoding issues.
