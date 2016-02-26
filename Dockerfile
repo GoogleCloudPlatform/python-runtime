@@ -11,6 +11,7 @@ RUN apt-get -q update && \
    libxslt1-dev libpq-dev libmysqlclient-dev libcurl4-openssl-dev \
    libjpeg-dev zlib1g-dev libpng12-dev \
    gfortran libblas-dev liblapack-dev libatlas-dev libquadmath0 \
+   libfreetype6-dev pkg-config swig \
    && \
  apt-get clean && rm /var/lib/apt/lists/*_*
 

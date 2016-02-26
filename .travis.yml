@@ -1,0 +1,6 @@
+sudo: required
+services:
+- docker
+script:
+- docker build -t google/python .
+- docker build -t google/python-libraries tests/python2-libraries
