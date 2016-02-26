@@ -22,12 +22,12 @@ ENV LANG C.UTF-8
 # install virtualenv system-wide.
 RUN pip install --upgrade pip virtualenv
 
-EXPOSE 8080
-
 RUN ln -s /home/vmagent/app /app
 WORKDIR /app
 
+# Port 8080 is the port used by Google App Engine for serving HTTP traffic.
+EXPOSE 8080
 ENV PORT 8080
 
-CMD []
 # The user's Dockerfile must specify an entrypoint with ENTRYPOINT or CMD.
+CMD []

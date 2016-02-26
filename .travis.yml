@@ -3,4 +3,7 @@ services:
 - docker
 script:
 - docker build -t google/python .
-- docker build -t google/python-libraries tests/python2-libraries
+- docker build tests/virtualenv
+- docker build tests/no-virtualenv
+# Disabled temporarily.
+#- docker build -t google/python-libraries tests/python2-libraries
