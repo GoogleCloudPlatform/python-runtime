@@ -23,7 +23,7 @@ For other docker hosts, you'll need to create a `Dockerfile` based on this image
     RUN virtualenv /env
     
     # Setting these environment variables are the same as running
-    # source /env/bin/activate
+    # source /env/bin/activate.
     ENV VIRTUAL_ENV /env
     ENV PATH /env/bin:$PATH
     
