@@ -1,12 +1,24 @@
-# Google Cloud Platform Python Docker Image
+# Google Cloud Platform - Python Runtime Docker Image
 
-This repository contains the source for the `gcr.io/google_appengine/python` [docker](https://docker.io) base image. This image can be used as the base image for running applications on [Google App Engine Managed VMs](https://cloud.google.com/appengine), [Google Container Engine](https://cloud.google.com/container-engine), or any other Docker host.
+This repository contains the source for the `gcr.io/google_appengine/python` [docker](https://docker.io) base image. This image can be used as the base image for running applications on [Google App Engine Flexible](https://cloud.google.com/appengine/docs/flexible/), [Google Container Engine](https://cloud.google.com/container-engine), or any other Docker host.
 
-This image is based on Debian Jessie and contains packages required to build most of the popular Python libraries.
+This image is based on Debian Jessie and contains packages required to build most of the popular Python libraries. For more information about this runtime, see the [documentation](https://cloud.google.com/appengine/docs/flexible/python/runtime).
 
 ## App Engine
 
-To generate a Dockerfile that uses this image as a base, use the [`Cloud SDK`](https://cloud.google.com/sdk/gcloud/reference/preview/app/gen-config):
+When using App Engine Flexible, you can use the runtime without worrying about docker by specifying `runtime: python` in your `app.yaml`:
+
+```yaml
+runtime: python
+vm: true
+entrypoint: gunicorn -b :$PORT main:app
+
+runtime_config:
+  # You can also specify 2 for Python 2.7
+  python_version: 3
+```
+
+If you want to use this runtime as a base and customize it, you can generate a Dockerfile using the [`Cloud SDK`](https://cloud.google.com/sdk/gcloud/reference/preview/app/gen-config):
 
     gcloud preview app gen-config --custom 
 
