@@ -17,6 +17,9 @@ RUN apt-get -q update && \
 
 # Setup locale. This prevents Python 3 IO encoding issues.
 ENV LANG C.UTF-8
+# Make stdout/stderr unbuffered. This prevents delay between output and cloud
+# logging collection.
+ENV PYTHONUNBUFFERED 1
 
 # Upgrade pip (debian package version tends to run a few version behind) and
 # install virtualenv system-wide.
