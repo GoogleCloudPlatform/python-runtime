@@ -20,7 +20,7 @@ runtime_config:
 
 If you want to use this runtime as a base and customize it, you can generate a Dockerfile using the [`Cloud SDK`](https://cloud.google.com/sdk/gcloud/reference/preview/app/gen-config):
 
-    gcloud preview app gen-config --custom 
+    gcloud beta app gen-config --custom 
 
 You can then modify the `Dockerfile` and `.dockerignore` as needed for you application.
 
