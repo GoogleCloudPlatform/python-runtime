@@ -2,8 +2,6 @@ sudo: required
 services:
 - docker
 script:
-- docker build -t google/python .
-- docker build tests/virtualenv
-- docker build tests/no-virtualenv
-# Disabled temporarily.
-#- docker build -t google/python-libraries tests/python2-libraries
+- make build
+- make tests/virtualenv
+- make tests/no-virtualenv
