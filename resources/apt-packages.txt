@@ -1,37 +1,38 @@
 # utilities
-wget
 git
 mercurial
 pkg-config
+wget
 # debian-provided interpreters
-python2.7
-python3.4
-python2.7-dev
-python3.4-dev
 python-pip
+python2.7
+python2.7-dev
+python3.4
+python3.4-dev
 # Dependenies for Python source builds and third-party Python packages
 # with C-extensions
 build-essential
-swig
+libbz2-dev
+libcurl4-openssl-dev
 libffi-dev
+libgdbm-dev
+libjpeg-dev
+liblzma-dev
+libmysqlclient-dev
+libncurses5-dev
+libpng12-dev
+libpq-dev
+libreadline-dev
+libsqlite3-dev
 libssl-dev
 libxml2-dev
 libxslt1-dev
-libpq-dev
-libmysqlclient-dev
-libcurl4-openssl-dev
-libjpeg-dev
+swig
 zlib1g-dev
-libpng12-dev
-libbz2-dev
-libsqlite3-dev
-libreadline-dev
-libncurses5-dev
-libgdbm-dev
 # Needed by scipy/numpy
 gfortran
-libblas-dev
-liblapack-dev
 libatlas-dev
-libquadmath0
+libblas-dev
 libfreetype6-dev  
+liblapack-dev
+libquadmath0
