@@ -2,18 +2,12 @@
 # installed.
 FROM gcr.io/google_appengine/base
 
+ADD resources /resources
+ADD scripts /scripts
+
 # Install Python, pip, and C dev libraries necessary to compile the most popular
 # Python libraries.
-RUN apt-get -q update && \
- apt-get install --no-install-recommends -y -q \
-   python2.7 python3.4 python2.7-dev python3.4-dev python-pip build-essential git mercurial \
-   libffi-dev libssl-dev libxml2-dev \
-   libxslt1-dev libpq-dev libmysqlclient-dev libcurl4-openssl-dev \
-   libjpeg-dev zlib1g-dev libpng12-dev \
-   gfortran libblas-dev liblapack-dev libatlas-dev libquadmath0 \
-   libfreetype6-dev pkg-config swig \
-   && \
- apt-get clean && rm /var/lib/apt/lists/*_*
+RUN /scripts/install-apt-packages.sh
 
 # Setup locale. This prevents Python 3 IO encoding issues.
 ENV LANG C.UTF-8
@@ -25,6 +19,10 @@ ENV PYTHONUNBUFFERED 1
 # install virtualenv system-wide.
 RUN pip install --upgrade pip virtualenv
 
+# Install the Python 3.5 interpreter
+RUN /scripts/build-python-3.5.sh
+
+# Setup the app working directory
 RUN ln -s /home/vmagent/app /app
 WORKDIR /app
 
