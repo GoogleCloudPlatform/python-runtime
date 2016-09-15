@@ -1,0 +1,32 @@
+# utilities
+git
+mercurial
+pkg-config
+wget
+# debian-provided interpreters
+python-pip
+python2.7
+python2.7-dev
+python3.4
+python3.4-dev
+# Dependenies for third-party Python packages
+# with C-extensions
+build-essential
+libcurl4-openssl-dev
+libffi-dev
+libjpeg-dev
+libmysqlclient-dev
+libpng12-dev
+libpq-dev
+libssl-dev
+libxml2-dev
+libxslt1-dev
+swig
+zlib1g-dev
+# Needed by scipy/numpy
+gfortran
+libatlas-dev
+libblas-dev
+libfreetype6-dev  
+liblapack-dev
+libquadmath0
