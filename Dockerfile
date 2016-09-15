@@ -19,8 +19,8 @@ ENV PYTHONUNBUFFERED 1
 # install virtualenv system-wide.
 RUN pip install --upgrade pip virtualenv
 
-# Install the Python 3.5 interpreter
-RUN /scripts/build-python-3.5.sh
+# Install the Google-built interpreters
+ADD python-interpreter-builder/output/interpreters.tar.gz /
 
 # Setup the app working directory
 RUN ln -s /home/vmagent/app /app

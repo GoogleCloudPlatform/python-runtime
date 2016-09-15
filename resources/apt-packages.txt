@@ -9,21 +9,15 @@ python2.7
 python2.7-dev
 python3.4
 python3.4-dev
-# Dependenies for Python source builds and third-party Python packages
+# Dependenies for third-party Python packages
 # with C-extensions
 build-essential
-libbz2-dev
 libcurl4-openssl-dev
 libffi-dev
-libgdbm-dev
 libjpeg-dev
-liblzma-dev
 libmysqlclient-dev
-libncurses5-dev
 libpng12-dev
 libpq-dev
-libreadline-dev
-libsqlite3-dev
 libssl-dev
 libxml2-dev
 libxslt1-dev

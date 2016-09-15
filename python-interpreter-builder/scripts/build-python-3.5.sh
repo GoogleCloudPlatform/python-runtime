@@ -11,7 +11,7 @@ tar xzf Python-3.5.2.tgz
 # Build
 cd Python-3.5.2
 # Use /opt/python{X}.{Y} for the prefix.
-./configure --prefix=/opt/python3.5
+./configure --prefix=/opt/python3.5 --with-lto
 # Explicitly build the profile-guided-optimized interpreter
 make profile-opt
 make install
