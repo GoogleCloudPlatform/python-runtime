@@ -1,9 +1,14 @@
+ifdef FORCE_REBUILD
+	DOCKER_FLAGS = --no-cache --pull
+endif
+
 .PHONY: build
 build: build-interpreters
-	docker build -t google/python .
+	docker build $(DOCKER_FLAGS) -t google/python .
 
 .PHONY: build-interpreters
 build-interpreters:
+	export DOCKER_FLAGS
 	make -C python-interpreter-builder build
 
 .PHONY: tests

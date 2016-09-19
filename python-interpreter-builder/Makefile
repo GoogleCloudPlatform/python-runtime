@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	docker build -t google/python-interpreter-builder .
+	docker build $(DOCKER_FLAGS) -t google/python-interpreter-builder .
 	# Extract the built interpreters
 	# This is needed because `docker cp` doesn't work on images, just containers.
 	docker run --name python-interpreter-builder google/python-interpreter-builder /bin/bash
