@@ -1,6 +1,6 @@
 # The Google App Engine base image is debian (jessie) with ca-certificates
 # installed.
-FROM gcr.io/google_appengine/base
+FROM gcr.io/google_appengine/debian8
 
 ADD resources /resources
 ADD scripts /scripts
