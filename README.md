@@ -18,11 +18,11 @@ runtime_config:
   python_version: 3
 ```
 
-If you want to use this runtime as a base and customize it, you can generate a Dockerfile using the [`Cloud SDK`](https://cloud.google.com/sdk/gcloud/reference/preview/app/gen-config):
+If you have an existing App Engine application using this runtime and want to customize it, you can use the [`Cloud SDK`](https://cloud.google.com/sdk/gcloud/reference/preview/app/gen-config) to create a custom runtime:
 
     gcloud beta app gen-config --custom 
 
-You can then modify the `Dockerfile` and `.dockerignore` as needed for you application.
+You can then modify the `Dockerfile` and `.dockerignore` as needed for you application. 
 
 ## Container Engine & other Docker hosts.
   
