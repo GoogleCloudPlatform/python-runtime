@@ -1,5 +1,6 @@
 # The Google App Engine base image is debian (jessie) with ca-certificates
 # installed.
+# Source: https://github.com/GoogleCloudPlatform/debian-docker
 FROM gcr.io/google_appengine/debian8
 
 ADD resources /resources
