@@ -169,3 +169,4 @@ hiredis
 bottle
 pyramid
 pyjwt
+pylibmc
