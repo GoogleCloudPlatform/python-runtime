@@ -31,10 +31,9 @@ libfreetype6-dev
 liblapack-dev
 libquadmath0
 # Needed by pylibmc
-libmemcached
 libmemcached-dev
 libsasl2-2
 sasl2-bin
 libsasl2-2
 libsasl2-dev
-libsasl1-modules
+libsasl2-modules
