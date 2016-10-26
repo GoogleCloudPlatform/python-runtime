@@ -19,3 +19,5 @@ make altinstall
 # Clean-up sources
 rm /opt/sources/Python-3.5.2.tgz
 rm -r /opt/sources/Python-3.5.2
+
+tar czf /interpreters.tar.gz /opt

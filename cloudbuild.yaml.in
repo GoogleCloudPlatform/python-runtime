@@ -1,0 +1,9 @@
+steps:
+  # This image contains the compiled python interpreter.
+  # Running this image copies it to /workspace
+- name: gcr.io/gcp-runtimes/python-interpreter-builder
+  args: []
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=${IMAGE_NAME}', '.']
+images:
+  ['${IMAGE_NAME}']
