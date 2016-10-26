@@ -20,3 +20,12 @@ tests:
 .PHONY: benchmarks
 benchmarks:
 	make -C tests benchmarks
+
+.PHONY: cloudbuild
+cloudbuild:
+	envsubst <cloudbuild.yaml.in >cloudbuild.yaml
+	gcloud alpha container builds create . --config=cloudbuild.yaml
+
+.PHONY: cloudbuild-interpreters
+cloudbuild-interpreters:
+	make -C python-interpreter-builder cloudbuild

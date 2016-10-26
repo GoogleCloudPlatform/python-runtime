@@ -24,7 +24,4 @@ ADD scripts /scripts
 
 # Build the Python 3.5 interpreter
 RUN /scripts/build-python-3.5.sh
-
-# Tar the interpreters. Tarring is needed because docker cp doesn't handle
-# links correctly.
-RUN tar czf /interpreters.tar.gz /opt
+CMD cp /interpreters.tar.gz /workspace/
