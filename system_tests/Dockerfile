@@ -33,7 +33,7 @@ RUN pip install --upgrade tox
 # List of system tests to run.  Ideally would be all of them.  But
 # some of them get permission or other errors that are probably
 # related to incomplete test setup.
-ENV MODULES="datastore storage speech bigquery pubsub language bigtable"
+ENV MODULES="datastore storage speech bigquery pubsub language translate monitoring bigtable"
 
 # Run Python 2.7, 3.4 system tests
 # TODO(https://github.com/GoogleCloudPlatform/google-cloud-python/issues/2670)
