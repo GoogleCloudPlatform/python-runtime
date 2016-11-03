@@ -21,7 +21,7 @@ ENV PYTHONUNBUFFERED 1
 RUN pip install --upgrade pip virtualenv
 
 # Install the Google-built interpreters
-ADD python-interpreter-builder/output/interpreters.tar.gz /
+ADD interpreters.tar.gz /
 
 # Setup the app working directory
 RUN ln -s /home/vmagent/app /app

@@ -1,0 +1,9 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=interpreter', 'python-interpreter-builder']
+- name: interpreter
+  args: ['cp', '/interpreters.tar.gz', '/workspace/']
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=${IMAGE_NAME}', '.']
+images:
+  ['${IMAGE_NAME}']
