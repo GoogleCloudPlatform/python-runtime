@@ -4,22 +4,23 @@ FROM google/python
 # TODO: Encrypt/decrypt secrets
 ADD data/ data/
 ENV GOOGLE_APPLICATION_CREDENTIALS /app/data/cloud-python-runtime-qa-credentials.json
+ENV GCLOUD_PROJECT cloud-python-runtime-qa
 
 # Get the source.
 RUN git clone https://github.com/GoogleCloudPlatform/google-cloud-python.git
 WORKDIR google-cloud-python
 
 # Install gcloud so we can do test setup
-RUN apt-get update && apt-get install curl
-RUN curl https://sdk.cloud.google.com | bash
-ENV PATH ${PATH}:/root/google-cloud-sdk/bin
+#RUN apt-get update && apt-get install curl
+#RUN curl https://sdk.cloud.google.com | bash
+#ENV PATH ${PATH}:/root/google-cloud-sdk/bin
 
 # System test setup as per google-cloud-python/CONTRIBUTING.rst
-RUN gcloud config set project cloud-python-runtime-qa
-RUN gcloud components install app-engine-python
-RUN gcloud auth activate-service-account \
-    --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
-RUN gcloud preview datastore create-indexes system_tests/data/index.yaml
+#RUN gcloud config set project cloud-python-runtime-qa
+#RUN gcloud components install app-engine-python
+#RUN gcloud auth activate-service-account \
+#    --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+# RUN gcloud preview datastore create-indexes system_tests/data/index.yaml
 # TODO: python system_tests/clear_datastore.py
 # TODO: python system_tests/populate_datastore.py
 
