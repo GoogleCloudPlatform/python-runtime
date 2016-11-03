@@ -7,10 +7,6 @@ RUN pip install --upgrade tox
 RUN git clone https://github.com/GoogleCloudPlatform/google-cloud-python.git
 WORKDIR google-cloud-python
 
-# Checkout the latest release.
-# TODO: Enable once run_unit_tests.py is released
-#RUN git checkout $(git describe --tags --abbrev=0)
-
 # Run Python 2.7 unit tests
 RUN python2.7 scripts/run_unit_tests.py
 

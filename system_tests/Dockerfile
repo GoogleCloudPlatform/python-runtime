@@ -9,10 +9,6 @@ ENV GOOGLE_APPLICATION_CREDENTIALS /app/data/cloud-python-runtime-qa-credentials
 RUN git clone https://github.com/GoogleCloudPlatform/google-cloud-python.git
 WORKDIR google-cloud-python
 
-# Checkout the latest release.
-# TODO: Enable once the latest release works
-#RUN git checkout $(git describe --tags --abbrev=0)
-
 # Install gcloud so we can do test setup
 RUN apt-get update && apt-get install curl
 RUN curl https://sdk.cloud.google.com | bash
