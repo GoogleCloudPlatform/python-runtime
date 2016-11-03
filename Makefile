@@ -26,6 +26,6 @@ tests:
 benchmarks:
 	make -C tests benchmarks
 
-.PHONY: system-tests
-system-tests:
+.PHONY: google-cloud-system-tests
+google-cloud-system-tests:
 	make -C system_tests
