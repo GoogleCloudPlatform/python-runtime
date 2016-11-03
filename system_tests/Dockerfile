@@ -1,7 +1,6 @@
 FROM google/python
 
 # Inject secrets
-# TODO: Encrypt/decrypt secrets
 ADD data/ data/
 ENV GOOGLE_APPLICATION_CREDENTIALS /app/data/cloud-python-runtime-qa-credentials.json
 ENV GCLOUD_PROJECT cloud-python-runtime-qa
@@ -19,6 +18,5 @@ RUN pip install --upgrade tox
 ENV MODULES="datastore storage speech bigquery pubsub language translate monitoring bigtable"
 
 # Run Python 2.7, 3.4 system tests
-# TODO(https://github.com/GoogleCloudPlatform/google-cloud-python/issues/2670)
 RUN GOOGLE_CLOUD_TESTS_API_KEY=$(cat /app/data/cloud-python-runtime-qa-api-key.txt) \
     tox -e system-tests,system-tests3 -- ${MODULES}
