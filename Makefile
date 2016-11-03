@@ -25,3 +25,7 @@ tests:
 .PHONY: benchmarks
 benchmarks:
 	make -C tests benchmarks
+
+.PHONY: system-tests
+system-tests:
+	make -C system_tests
