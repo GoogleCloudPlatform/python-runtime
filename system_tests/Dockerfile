@@ -10,7 +10,8 @@ RUN git clone https://github.com/GoogleCloudPlatform/google-cloud-python.git
 WORKDIR google-cloud-python
 
 # Checkout the latest release.
-RUN git checkout $(git describe --tags --abbrev 0)
+# TODO: Enable once the latest release works
+#RUN git checkout $(git describe --tags --abbrev=0)
 
 # Install gcloud so we can do test setup
 RUN apt-get update && apt-get install curl
