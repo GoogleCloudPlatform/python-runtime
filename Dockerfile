@@ -23,6 +23,9 @@ RUN pip install --upgrade pip virtualenv
 # Install the Google-built interpreters
 ADD interpreters.tar.gz /
 
+# Add Google-built interpreters to the path
+ENV PATH /opt/python3.5/bin:$PATH
+
 # Setup the app working directory
 RUN ln -s /home/vmagent/app /app
 WORKDIR /app
