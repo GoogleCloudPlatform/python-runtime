@@ -29,7 +29,8 @@ RUN python -c "import sys; import flask; sys.exit(0 if flask.__file__.startswith
 
 # Python 3.5
 RUN rm -rf /env
-RUN virtualenv -p /opt/python3.5/bin/python3.5 /env
+RUN if [ "$(which python3.5)" != "/opt/python3.5/bin/python3.5" ]; then exit 1; fi;
+RUN virtualenv -p python3.5 /env
 # All commands from this point on should use the virtualenv
 RUN if [ "$(which python)" != "/env/bin/python" ]; then exit 1; fi;
 RUN if [ "$(which python3)" != "/env/bin/python3" ]; then exit 1; fi;
