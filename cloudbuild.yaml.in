@@ -5,5 +5,7 @@ steps:
   args: ['cp', '/interpreters.tar.gz', '/workspace/']
 - name: gcr.io/cloud-builders/docker
   args: ['build', '--tag=${IMAGE_NAME}', '.']
+- name: gcr.io/gcp-runtimes/structure_test
+  args: ['-i', 'google/python', '--config', '/workspace/tests/virtualenv/virtualenv_test.json', '-v']
 images:
   ['${IMAGE_NAME}']
