@@ -9,6 +9,7 @@ steps:
   args: [
     '-i', 'google/python', 
     '--config', '/workspace/tests/virtualenv/virtualenv.yaml',
+    '--config', '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
     '-v'
   ]
 images:

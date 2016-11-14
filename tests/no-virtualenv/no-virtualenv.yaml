@@ -1,0 +1,10 @@
+schemaVersion: "1.0.0"
+commandTests:
+  - name: "default python installation"
+    command: ["which", "python"]
+    expectedOutput: ["/usr/bin/python\n"]
+
+  - name: "default gunicorn installation"
+    setup: [["pip", "install", "gunicorn"]]
+    command: ["which", "gunicorn"]
+    expectedOutput: ["/usr/local/bin/gunicorn\n"]
