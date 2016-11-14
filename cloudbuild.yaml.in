@@ -7,9 +7,11 @@ steps:
   args: ['build', '--tag=${IMAGE_NAME}', '.']
 - name: gcr.io/nick-cloudbuild/structure_test:env_var
   args: [
-    '-i', 'google/python', 
+    '-i', '${IMAGE_NAME}',
     '--config', '/workspace/tests/virtualenv/virtualenv.yaml',
     '--config', '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
+    '--config', '/workspace/tests/python2-libraries/python2-libraries.yaml',
+    '--config', '/workspace/tests/python2-libraries/python3-libraries.yaml',
     '-v'
   ]
 images:
