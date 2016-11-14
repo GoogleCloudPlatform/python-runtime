@@ -1,11 +1,15 @@
 steps:
-# - name: gcr.io/cloud-builders/docker
-#   args: ['build', '--tag=interpreter', 'python-interpreter-builder']
-# - name: interpreter
-#   args: ['cp', '/interpreters.tar.gz', '/workspace/']
-# - name: gcr.io/cloud-builders/docker
-#   args: ['build', '--tag=${IMAGE_NAME}', '.']
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=interpreter', 'python-interpreter-builder']
+- name: interpreter
+  args: ['cp', '/interpreters.tar.gz', '/workspace/']
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=${IMAGE_NAME}', '.']
 - name: gcr.io/nick-cloudbuild/structure_test:env_var
-  args: ['-i', 'google/python', '--config', '/workspace/tests/virtualenv/virtualenv_test.yaml', '-v']
+  args: [
+    '-i', 'google/python', 
+    '--config', '/workspace/tests/virtualenv/virtualenv.yaml',
+    '-v'
+  ]
 images:
   ['${IMAGE_NAME}']
