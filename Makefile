@@ -7,6 +7,7 @@ endif
 # concurrent builds on the same machine.
 CANDIDATE_NAME ?= $(shell date +%Y-%m-%d_%H_%M)
 IMAGE_NAME ?= google/python:$(CANDIDATE_NAME)
+export IMAGE_NAME
 
 .PHONY: build
 build: build-interpreters
