@@ -1,12 +1,12 @@
 schemaVersion: "1.0.0"
+
+globalEnvVars:
+  - key: "VIRTUAL_ENV"
+    value: "/env"
+  - key: "PATH"
+    value: "/env/bin:$PATH"
+
 commandTests:
-  - name: "env var setup"
-    envVars:
-      - key: "VIRTUAL_ENV"
-        value: "/env"
-      - key: "PATH"
-        value: "/env/bin:$PATH"
-    command: ["echo", "'setup complete'"]
 
 #####################################################
 #    Default Python Tests
@@ -87,9 +87,13 @@ commandTests:
     command: ["rm", "-rf", "/env"]
 
   - name: "virtualenv python installation"
-    setup: [["virtualenv", "-p", "/opt/python3.5/bin/python3.5", "/env"]]
+    setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["which", "python"]
     expectedOutput: ["/env/bin/python\n"]
+
+  - name: "python installation"
+    command: ["which", "python3.5"]
+    expectedOutput: ["/opt/python3.5/bin/python3.5\n"]
 
   - name: "virtualenv python3 installation"
     command: ["which", "python3"]

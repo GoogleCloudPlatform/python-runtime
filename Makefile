@@ -21,6 +21,8 @@ build-interpreters:
 
 .PHONY: tests
 tests:
+	curl https://raw.githubusercontent.com/GoogleCloudPlatform/runtimes-common/master/structure_tests/ext_run.sh > ext_run.sh
+	chmod +x ext_run.sh
 	make -C tests all
 
 .PHONY: benchmarks
