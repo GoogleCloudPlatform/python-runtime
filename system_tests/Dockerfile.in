@@ -1,4 +1,4 @@
-FROM google/python
+FROM ${IMAGE_NAME}
 
 # Inject secrets
 ADD data/ data/

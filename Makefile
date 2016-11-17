@@ -14,26 +14,41 @@ local-image: build-interpreters
 	docker build $(DOCKER_FLAGS) -t "$(IMAGE_NAME)" .
 	docker tag -f "$(IMAGE_NAME)" "google/python"
 
-.PHONY: local-tests
-local-tests: local-image
-	curl https://raw.githubusercontent.com/GoogleCloudPlatform/runtimes-common/master/structure_tests/ext_run.sh > ext_run.sh
-	chmod +x ext_run.sh
-	make -C tests all
-
 .PHONY: build-interpreters
 build-interpreters:
 	export DOCKER_FLAGS
 	make -C python-interpreter-builder build
 
+.PHONY: cloudbuild
+cloudbuild:
+	envsubst < cloudbuild.yaml.in > cloudbuild.yaml
+	gcloud alpha container builds create . --config=cloudbuild.yaml
+
+.PHONY: build
+# no structure tests since they are implicit in cloudbuild
+build: cloudbuild integration-tests
+
+.PHONY: build-local
+build-local: local-image structure-tests integration-tests
+
+
+.PHONY: structure-tests
+structure-tests: local-image
+	curl https://raw.githubusercontent.com/GoogleCloudPlatform/runtimes-common/master/structure_tests/ext_run.sh > ext_run.sh
+	chmod +x ext_run.sh
+	make -C tests structure-tests
+
 .PHONY: benchmarks
 benchmarks:
 	make -C tests benchmarks
+
+.PHONY: google-cloud-python
+google-cloud-python:
+	make -C tests google-cloud-python
 
 .PHONY: google-cloud-system-tests
 google-cloud-system-tests:
 	make -C system_tests
 
-.PHONY: cloudbuild
-cloudbuild:
-	envsubst <cloudbuild.yaml.in > cloudbuild.yaml
-	gcloud alpha container builds create . --config=cloudbuild.yaml
+.PHONY: integration-tests
+tests: benchmarks google-cloud-system-tests google-cloud-python
