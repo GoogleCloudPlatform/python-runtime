@@ -1,4 +1,4 @@
-FROM google/python
+FROM ${IMAGE_NAME}
 
 RUN hg clone https://hg.python.org/benchmarks /app/benchmarks
 WORKDIR /app/benchmarks

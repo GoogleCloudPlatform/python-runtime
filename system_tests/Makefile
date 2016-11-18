@@ -4,4 +4,5 @@ CACHE ?= --no-cache
 
 .PHONY: all
 all:
+	envsubst < Dockerfile.in > Dockerfile
 	docker build $(CACHE) .

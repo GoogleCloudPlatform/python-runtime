@@ -1,4 +1,4 @@
-FROM google/python
+FROM ${IMAGE_NAME}
 
 # Install tox
 RUN pip install --upgrade tox

@@ -1,0 +1,13 @@
+schemaVersion: "1.0.0"
+
+globalEnvVars:
+  - key: "VIRTUAL_ENV"
+    value: "/env"
+  - key: "PATH"
+    value: "/env/bin:$PATH"
+
+commandTests:
+  - name: "requirements"
+    setup: [["virtualenv", "/env"]]
+    command: ["pip", "install", "-r", "/workspace/tests/python2-libraries/requirements.txt"]
+    exitCode: 0
