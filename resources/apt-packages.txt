@@ -36,3 +36,7 @@ libsasl2-2
 libsasl2-dev
 libsasl2-modules
 sasl2-bin
+# Needed for GeoDjango
+binutils
+libproj-dev
+gdal-bin
