@@ -10,14 +10,14 @@ commandTests:
   - name: "virtual env teardown"
     command: ["rm", "-rf", "/env"]
 
+  - name: "python installation"
+    command: ["which", "python3.5"]
+    expectedOutput: ["/opt/python3.5/bin/python3.5\n"]
+
   - name: "virtualenv python installation"
     setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["which", "python"]
     expectedOutput: ["/env/bin/python\n"]
-
-  - name: "python installation"
-    command: ["which", "python3.5"]
-    expectedOutput: ["/opt/python3.5/bin/python3.5\n"]
 
   - name: "virtualenv python3 installation"
     command: ["which", "python3"]
