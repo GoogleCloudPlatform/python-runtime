@@ -11,6 +11,7 @@ make build
 
 if [ "${UPLOAD_TO_STAGING}" = "true" ]; then
   STAGING="${DOCKER_NAMESPACE}/${RUNTIME_NAME}:staging"
-  docker tag -f "${IMAGE_NAME}" "${STAGING}"
+  docker rmi "${STAGING}" 2>/dev/null || true # Ignore if tag not present
+  docker tag "${IMAGE_NAME}" "${STAGING}"
   gcloud docker push "${STAGING}"
 fi

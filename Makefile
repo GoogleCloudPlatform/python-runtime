@@ -12,7 +12,8 @@ export IMAGE_NAME
 .PHONY: local-image
 local-image: build-interpreters
 	docker build $(DOCKER_FLAGS) -t "$(IMAGE_NAME)" .
-	docker tag -f "$(IMAGE_NAME)" "google/python"
+	-docker rmi "google/python" 2>/dev/null
+	docker tag "$(IMAGE_NAME)" "google/python"
 
 .PHONY: build-interpreters
 build-interpreters:
