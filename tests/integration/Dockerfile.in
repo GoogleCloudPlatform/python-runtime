@@ -1,0 +1,11 @@
+FROM ${STAGING_IMAGE}
+
+COPY . /app
+WORKDIR /app
+
+RUN pip install -r requirements.txt
+
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/auth.json
+
+ENTRYPOINT ["python"]
+CMD ["server.py"]

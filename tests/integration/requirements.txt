@@ -1,0 +1,5 @@
+Flask
+google-cloud
+google-cloud-logging
+google-cloud-monitoring
+requests
