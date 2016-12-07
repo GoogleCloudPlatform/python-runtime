@@ -6,8 +6,11 @@ from google.cloud.monitoring import MetricKind, ValueType
 from google.cloud.exceptions import Forbidden as ForbiddenException
 from google.cloud.exceptions import NotFound as NotFoundException
 from oauth2client.client import GoogleCredentials
+
 import logging
-from flask import Flask, request, abort, jsonify
+import time
+
+from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 
@@ -31,7 +34,7 @@ def _logging():
 	_log("log name is {0}, token is {1}".format(log_name, token))
 	_log(token, log_name)
 
-	return ('', 204)
+	return ('OK', 200)
 
 
 # TODO (nkubala): just as a note, currently the client logging API is broken
@@ -58,7 +61,7 @@ def _monitoring():
 		raise ErrorResponse("Unable to parse request JSON: did you set the Content-type header?")
 	name = request_data.get('name', '')
 	if name == '':
-		raise ErrorResponse("please provide name")
+		raise ErrorResponse("please provide metric name")
 	token = request_data.get('token', '')
 	if token == '':
 		raise ErrorResponse("please provide metric token")
@@ -84,7 +87,7 @@ def _monitoring():
 	# 	if descriptor is not None:
 	# 		descriptor.delete()
 
-	print 'OK'
+	return ('OK', 200)
 
 
 def _create_descriptor(name, client):
@@ -92,7 +95,7 @@ def _create_descriptor(name, client):
 	descriptor = client.metric_descriptor(
 		name,
 		metric_kind=MetricKind.GAUGE,
-		value_type=ValueType.DOUBLE,
+		value_type=ValueType.INT64,
 		description="this is a test metric"
 		)
 	descriptor.create()
@@ -101,12 +104,12 @@ def _create_descriptor(name, client):
 
 @app.route('/exception', methods=['POST'])
 def _exception():
-	print ''
+	return ('', 204)
 
 
 @app.route('/trace', methods=['POST'])
 def _trace():
-	print''
+	return ('', 204)
 
 
 class ErrorResponse(Exception):
