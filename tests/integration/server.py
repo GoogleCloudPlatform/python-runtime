@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 from google.cloud import logging as gcloud_logging
-from google.cloud import monitoring
+from google.cloud import monitoring as gcloud_monitoring
 from google.cloud.monitoring import MetricKind, ValueType
+from google.cloud.exceptions import Forbidden as ForbiddenException
+from google.cloud.exceptions import NotFound as NotFoundException
 from oauth2client.client import GoogleCredentials
 import logging
 from flask import Flask, request, abort, jsonify
@@ -15,7 +17,7 @@ def hello_world():
 
 
 @app.route('/logging', methods=['POST'])
-def logging():
+def _logging():
 	request_data = request.get_json()
 	if request_data is None:
 		raise ErrorResponse("Unable to parse request JSON: did you set the Content-type header?")
@@ -32,24 +34,25 @@ def logging():
 	return ('', 204)
 
 
+# TODO (nkubala): just as a note, currently the client logging API is broken
 def _log(token, log_name='stdout'):
 	# TODO (nkubala): write token to 'log_name' log, instead of stdout
 	# is this possible in non-standard (flex)???
 
-	# try:
-	# 	client = gcloud_logging.Client(credentials=GoogleCredentials.get_application_default())
-	# 	gcloud_logger = client.logger(log_name)
-	# 	gcloud_logger.log_text(token)
-	# except Exception as e:
-	# 	logging.error("error while writing logs")
-	# 	raise ErrorResponse("error while writing logs: {0}".format(e))
+	try:
+		client = gcloud_logging.Client(credentials=GoogleCredentials.get_application_default())
+		gcloud_logger = client.logger(log_name)
+		gcloud_logger.log_text(token)
+	except Exception as e:
+		logging.error("error while writing logs")
+		raise ErrorResponse("error while writing logs: {0}".format(e))
 
 	# logging.info(token)
 	print token
 
 
 @app.route('/monitoring', methods=['POST'])
-def monitoring():
+def _monitoring():
 	request_data = request.get_json()
 	if request_data is None:
 		raise ErrorResponse("Unable to parse request JSON: did you set the Content-type header?")
@@ -60,33 +63,49 @@ def monitoring():
 	if token == '':
 		raise ErrorResponse("please provide metric token")
 
-	client = monitoring.Client(credentials=GoogleCredentials.get_application_default())
+	try:
+		client = gcloud_monitoring.Client(credentials=GoogleCredentials.get_application_default())
 
-	descriptor = client.metric_descriptor(
-		'custom.googleapis.com/{0}'.format(name),
-		metric_kind=MetricKind.GAUGE,
-		value_type=ValueType.DOUBLE,
-		description=token
-		)
-	descriptor.create()
+		try:
+			descriptor = client.fetch_metric_descriptor(name)
+			if descriptor is None:
+				_create_descriptor(name, client)
+		except (ForbiddenException, NotFoundException) as ignored:
+			# print "forbidden"
+			_create_descriptor(name, client)
 
-	# resource = client.resource()
-
-	metric = client.metric(
-		type='custom.googleapis.com/{0}'.format(name))
-
-	client.write_point(metric=metric, value=token)
+		metric = client.metric(name, {})
+		resource = client.resource('global', labels={})
+		client.write_point(metric, resource, token)
+	except Exception as e:
+		logging.error(e)
+		raise ErrorResponse("error while writing custom metric: {0}".format(e))
+	# finally:
+	# 	if descriptor is not None:
+	# 		descriptor.delete()
 
 	print 'OK'
 
 
+def _create_descriptor(name, client):
+	logging.info("no descriptor found with name {0}: creating".format(name))
+	descriptor = client.metric_descriptor(
+		name,
+		metric_kind=MetricKind.GAUGE,
+		value_type=ValueType.DOUBLE,
+		description="this is a test metric"
+		)
+	descriptor.create()
+	time.sleep(5)
+
+
 @app.route('/exception', methods=['POST'])
-def exception():
+def _exception():
 	print ''
 
 
 @app.route('/trace', methods=['POST'])
-def trace():
+def _trace():
 	print''
 
 
