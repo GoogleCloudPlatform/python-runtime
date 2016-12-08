@@ -17,11 +17,9 @@
 import logging
 import time
 
-from google.cloud import logging as gcloud_logging
-from google.cloud import monitoring as gcloud_monitoring
-from google.cloud.monitoring import MetricKind, ValueType
-from google.cloud.exceptions import Forbidden as ForbiddenException
-from google.cloud.exceptions import NotFound as NotFoundException
+import google.cloud.logging
+import google.cloud.monitoring
+import google.cloud.exceptions
 
 from flask import Flask, request, jsonify
 
@@ -39,11 +37,11 @@ def _logging():
     if request_data is None:
         raise ErrorResponse('Unable to parse request JSON: '
                             'did you set the Content-type header?')
-    log_name = request_data.get('log_name', '')
-    if log_name == '':
+    log_name = request_data.get('log_name')
+    if not log_name:
         raise ErrorResponse('Please provide log name')
-    token = request_data.get('token', '')
-    if token == '':
+    token = request_data.get('token')
+    if not token:
         raise ErrorResponse('Please provide token name')
 
     _log("log name is {0}, token is {1}".format(log_name, token))
@@ -58,7 +56,7 @@ def _log(token, log_name='stdout'):
     # is this possible in non-standard (flex)???
 
     try:
-        client = gcloud_logging.Client()
+        client = google.cloud.logging.Client()
         gcloud_logger = client.logger(log_name)
         gcloud_logger.log_text(token)
     except Exception as e:
@@ -66,7 +64,7 @@ def _log(token, log_name='stdout'):
         raise ErrorResponse('Error while writing logs: {0}'.format(e))
 
     # logging.info(token)
-    print token
+    print(token)
 
 
 @app.route('/monitoring', methods=['POST'])
@@ -75,21 +73,22 @@ def _monitoring():
     if request_data is None:
         raise ErrorResponse('Unable to parse request JSON: '
                             'did you set the Content-type header?')
-    name = request_data.get('name', '')
-    if name == '':
+    name = request_data.get('name')
+    if not name:
         raise ErrorResponse('Please provide metric name')
-    token = request_data.get('token', '')
-    if token == '':
+    token = request_data.get('token')
+    if not token:
         raise ErrorResponse('Please provide metric token')
 
     try:
-        client = gcloud_monitoring.Client()
+        client = google.cloud.monitoring.Client()
 
         try:
             descriptor = client.fetch_metric_descriptor(name)
             if descriptor is None:
                 _create_descriptor(name, client)
-        except (ForbiddenException, NotFoundException) as ignored:
+        except (google.cloud.exceptions.Forbidden, 
+                google.cloud.exceptions.NotFound) as ignored:
             _create_descriptor(name, client)
 
         metric = client.metric(name, {})
@@ -106,8 +105,8 @@ def _create_descriptor(name, client):
     logging.info('No descriptor found with name {0}: Creating...'.format(name))
     descriptor = client.metric_descriptor(
         name,
-        metric_kind=MetricKind.GAUGE,
-        value_type=ValueType.INT64,
+        metric_kind=google.cloud.monitoring.MetricKind.GAUGE,
+        value_type=google.cloud.monitoring.ValueType.INT64,
         description='Test Metric'
         )
     descriptor.create()
