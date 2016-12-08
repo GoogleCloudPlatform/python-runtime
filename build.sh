@@ -25,4 +25,4 @@ if [ -z "$1" ]; then
 fi
 
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
-gcloud alpha container builds create . --config=cloudbuild.yaml
+gcloud beta container builds submit . --config=cloudbuild.yaml
