@@ -7,6 +7,9 @@ globalEnvVars:
     value: "/env/bin:$PATH"
 
 commandTests:
+  - name: "virtual env teardown"
+    command: ["rm", "-rf", "/env"]
+
   - name: "requirements"
     setup: [["virtualenv", "-p", "/opt/python3.5/bin/python3.5", "/env"]]
     command: ["pip", "install", "-r", "/workspace/tests/python3-libraries/requirements.txt"]
