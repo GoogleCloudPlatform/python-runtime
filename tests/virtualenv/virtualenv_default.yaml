@@ -7,6 +7,9 @@ globalEnvVars:
     value: "/env/bin:$PATH"
 
 commandTests:
+  - name: "virtual env teardown"
+    command: ["rm", "-rf", "/env"]
+
   - name: "python installation"
     command: ["which", "python"]
     expectedOutput: ["/usr/bin/python\n"]

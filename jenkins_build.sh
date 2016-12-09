@@ -1,3 +1,7 @@
+#!/bin/sh
+
+set -eu
+
 RUNTIME_NAME="python"
 
 CANDIDATE_NAME=`date +%Y-%m-%d_%H_%M`

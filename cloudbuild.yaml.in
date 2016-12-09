@@ -1,3 +1,4 @@
+timeout: 3600s
 steps:
 - name: gcr.io/cloud-builders/docker
   args: ['build', '--tag=interpreter', '--no-cache', 'python-interpreter-builder']
