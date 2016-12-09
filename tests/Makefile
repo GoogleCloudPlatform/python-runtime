@@ -4,6 +4,7 @@ structure-tests:
 	make -C virtualenv
 	make -C python2-libraries
 	make -C python3-libraries
+	make -C license-test
 
 .PHONY: benchmarks
 benchmarks:
