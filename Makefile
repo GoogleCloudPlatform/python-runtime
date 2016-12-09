@@ -20,9 +20,11 @@ build-interpreters:
 	export DOCKER_FLAGS
 	make -C python-interpreter-builder build
 
-.PHONY: cloudbuild
-cloudbuild:
+cloudbuild.yaml: cloudbuild.yaml.in
 	envsubst < cloudbuild.yaml.in > cloudbuild.yaml
+
+.PHONY: cloudbuild
+cloudbuild: cloudbuild.yaml
 	gcloud alpha container builds create . --config=cloudbuild.yaml
 
 .PHONY: build
@@ -32,11 +34,13 @@ build: cloudbuild integration-tests
 .PHONY: build-local
 build-local: local-image structure-tests integration-tests
 
-
-.PHONY: structure-tests
-structure-tests: local-image
+.PHONY: ext_run.sh # Force refetch every time
+ext_run.sh:
 	curl https://raw.githubusercontent.com/GoogleCloudPlatform/runtimes-common/master/structure_tests/ext_run.sh > ext_run.sh
 	chmod +x ext_run.sh
+
+.PHONY: structure-tests
+structure-tests: local-image ext_run.sh
 	make -C tests structure-tests
 
 .PHONY: benchmarks

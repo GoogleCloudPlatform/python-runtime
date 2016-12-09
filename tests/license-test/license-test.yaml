@@ -1,5 +1,6 @@
 schemaVersion: "1.0.0"
 
+# See https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/structure_tests/README.md#license-tests
 licenseTests:
   - debian: true
     files: []
