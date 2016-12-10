@@ -20,6 +20,7 @@ build-interpreters:
 	export DOCKER_FLAGS
 	make -C python-interpreter-builder build
 
+.PHONY: cloudbuild.yaml # Force reevaluation of env vars every time
 cloudbuild.yaml: cloudbuild.yaml.in
 	envsubst < cloudbuild.yaml.in > cloudbuild.yaml
 
