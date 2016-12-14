@@ -13,7 +13,9 @@
 # limitations under the License.
 
 Flask==0.11.1
-google-cloud==0.21.0
 google-cloud-logging==0.21.0
 google-cloud-monitoring==0.21.0
+google-cloud-error-reporting==0.21.0
+gunicorn==19.6.0
+retrying==1.3.3
 requests==2.2.1

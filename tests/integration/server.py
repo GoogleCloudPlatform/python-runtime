@@ -16,6 +16,7 @@
 
 import logging
 import time
+from retrying import retry
 
 import google.cloud.logging
 import google.cloud.monitoring
@@ -91,14 +92,20 @@ def _monitoring():
                 google.cloud.exceptions.NotFound) as ignored:
             _create_descriptor(name, client)
 
-        metric = client.metric(name, {})
-        resource = client.resource('global', labels={})
-        client.write_point(metric, resource, token)
+        _write_metric(name, client)
+
     except Exception as e:
         logging.error('Error while writing custom metric: {0}'.format(e))
         raise ErrorResponse('Error while writing custom metric: {0}'.format(e))
 
     return 'OK', 200
+
+
+@retry(wait_exponential_multiplier=1000, stop_max_attempt_number=10)
+def _write_metric(name, client):
+    metric = client.metric(name, {})
+    resource = client.resource('global', labels={})
+    client.write_point(metric, resource, token)
 
 
 def _create_descriptor(name, client):
