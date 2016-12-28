@@ -19,6 +19,7 @@ from retrying import retry
 
 import google.cloud.logging
 import google.cloud.monitoring
+import google.cloud.error_reporting
 import google.cloud.exceptions
 
 from flask import Flask, request, jsonify
@@ -119,12 +120,32 @@ def _create_descriptor(name, client):
 
 @app.route('/exception', methods=['POST'])
 def _exception():
-    return ('', 204)
+    request_data = request.get_json()
+    if request_data is None:
+        raise ErrorResponse('Unable to parse request JSON: '
+                            'did you set the Content-type header?')
+    token = request_data.get('token')
+    if not token:
+        raise ErrorResponse('Please provide token')
+
+    try:
+        client = google.cloud.error_reporting.Client()
+        try:
+            raise NameError
+        except Exception:
+            client.report_exception()
+
+        client.report(token)
+    except Exception as e:
+        logging.error('Error while reporting exception: {0}'.format(e))
+        raise ErrorResponse('Error while reporting exception: {0}'.format(e))
+
+    return 'OK', 200
 
 
 @app.route('/trace', methods=['POST'])
 def _trace():
-    return ('', 204)
+    return 'OK', 204
 
 
 class ErrorResponse(Exception):
