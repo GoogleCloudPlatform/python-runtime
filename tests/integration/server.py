@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import logging
-from retrying import retry
 
 import google.cloud.logging
 import google.cloud.monitoring
@@ -51,8 +50,23 @@ def _logging():
     return 'OK', 200
 
 
-# TODO (nkubala): just as a note, currently the client logging API is broken
 def _log(token, log_name='stdout'):
+    """
+    Write a log entry to Stackdriver.
+
+    Keyword arguments:
+    token -- 16-character (8-byte) hexadecimal token, to be written
+    as a log entry.
+    log_name -- The name of the logging group to be written to.
+
+    Once the entry is written to Stackdriver, the test driver will retrieve
+    all entries with the name 'log_name', and verify there is an entry with
+    the same value as 'token', indicating the entry was written successfully.
+    """
+
+    # TODO (nkubala): just as a note, currently the client logging API is
+    # broken
+
     # TODO (nkubala): write token to 'log_name' log, instead of stdout
     # is this possible in non-standard (flex)???
 
@@ -64,7 +78,7 @@ def _log(token, log_name='stdout'):
         logging.error('Error while writing logs: {0}'.format(e))
         raise ErrorResponse('Error while writing logs: {0}'.format(e))
 
-    # logging.info(token)
+    logging.debug(token)
     print(token)
 
 
@@ -88,8 +102,8 @@ def _monitoring():
             descriptor = client.fetch_metric_descriptor(name)
             if descriptor is None:
                 _create_descriptor(name, client)
-        except (google.cloud.exceptions.Forbidden, 
-                google.cloud.exceptions.NotFound) as ignored:
+        except (google.cloud.exceptions.Forbidden,
+                google.cloud.exceptions.NotFound) as ignored:  # noqa: F841
             _create_descriptor(name, client)
 
         _write_metric(name, client, token)
@@ -102,12 +116,30 @@ def _monitoring():
 
 
 def _write_metric(name, client, token):
+    """
+    Write a metric to Stackdriver Monitoring.
+
+    Keyword arguments:
+    name -- The name of the metric to write. Takes the form
+    'custom.googleapis.com/{metric_name}'
+    client -- the authenticated instance of a Google Cloud Client
+    token -- a random 64-bit integer token. The metric value to be written.
+
+    Once the metric is written, the test driver will retrieve all metrics
+    written with the provided name, and verify there is an entry with the
+    same value as the provided token.
+    """
     metric = client.metric(name, {})
     resource = client.resource('global', labels={})
     client.write_point(metric, resource, token)
 
 
 def _create_descriptor(name, client):
+    """
+    Create a new metric descriptor.
+    This descriptor is implicitly used to write a point-value metric to
+    Stackdriver.
+    """
     logging.info('No descriptor found with name {0}: Creating...'.format(name))
     descriptor = client.metric_descriptor(
         name,

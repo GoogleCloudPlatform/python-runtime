@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+set -euo pipefail
 
 export IMAGE_NAME=$1
 
-if [ -z "$1" ]; then
+if [ -z "$IMAGE_NAME" ]; then
   echo "Usage: ./build.sh [image_path]"
   echo "Please provide fully qualified path to target image."
   exit 1
