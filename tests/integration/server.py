@@ -34,7 +34,10 @@ def verify_request(f):
         if request_data is None:
             raise ErrorResponse('Unable to parse request JSON: '
                                 'did you set the Content-type header?')
-        return f(*args, **kwargs)
+        token = request_data.get('token')
+        if not token:
+            raise ErrorResponse('Please provide token name')
+        return f(*args, request_data=request_data, token=token, **kwargs)
     return verified_func
 
 
@@ -45,14 +48,10 @@ def hello_world():
 
 @app.route('/logging', methods=['POST'])
 @verify_request
-def _logging():
-    request_data = request.get_json()
+def _logging(request_data, token):
     log_name = request_data.get('log_name')
     if not log_name:
         raise ErrorResponse('Please provide log name')
-    token = request_data.get('token')
-    if not token:
-        raise ErrorResponse('Please provide token name')
 
     _log(token, log_name)
 
@@ -93,14 +92,10 @@ def _log(token, log_name='stdout'):
 
 @app.route('/monitoring', methods=['POST'])
 @verify_request
-def _monitoring():
-    request_data = request.get_json()
+def _monitoring(request_data, token):
     name = request_data.get('name')
     if not name:
         raise ErrorResponse('Please provide metric name')
-    token = request_data.get('token')
-    if not token:
-        raise ErrorResponse('Please provide metric token')
 
     try:
         client = google.cloud.monitoring.Client()
@@ -158,12 +153,7 @@ def _create_descriptor(name, client):
 
 @app.route('/exception', methods=['POST'])
 @verify_request
-def _exception():
-    request_data = request.get_json()
-    token = request_data.get('token')
-    if not token:
-        raise ErrorResponse('Please provide token')
-
+def _exception(request_data, token):
     try:
         client = google.cloud.error_reporting.Client()
         try:
