@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import wraps
 import logging
 
 import google.cloud.logging
@@ -26,17 +27,26 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 
+def verify_request(f):
+    @wraps(f)
+    def verified_func(*args, **kwargs):
+        request_data = request.get_json()
+        if request_data is None:
+            raise ErrorResponse('Unable to parse request JSON: '
+                                'did you set the Content-type header?')
+        return f(*args, **kwargs)
+    return verified_func
+
+
 @app.route('/')
 def hello_world():
     return 'Hello World!'
 
 
 @app.route('/logging', methods=['POST'])
+@verify_request
 def _logging():
     request_data = request.get_json()
-    if request_data is None:
-        raise ErrorResponse('Unable to parse request JSON: '
-                            'did you set the Content-type header?')
     log_name = request_data.get('log_name')
     if not log_name:
         raise ErrorResponse('Please provide log name')
@@ -73,7 +83,7 @@ def _log(token, log_name='stdout'):
         client = google.cloud.logging.Client()
         gcloud_logger = client.logger(log_name)
         gcloud_logger.log_text(token)
-    except Exception as e:
+    except google.cloud.exceptions.GoogleCloudError as e:
         logging.error('Error while writing logs: {0}'.format(e))
         raise ErrorResponse('Error while writing logs: {0}'.format(e))
 
@@ -82,11 +92,9 @@ def _log(token, log_name='stdout'):
 
 
 @app.route('/monitoring', methods=['POST'])
+@verify_request
 def _monitoring():
     request_data = request.get_json()
-    if request_data is None:
-        raise ErrorResponse('Unable to parse request JSON: '
-                            'did you set the Content-type header?')
     name = request_data.get('name')
     if not name:
         raise ErrorResponse('Please provide metric name')
@@ -107,7 +115,7 @@ def _monitoring():
 
         _write_metric(name, client, token)
 
-    except Exception as e:
+    except google.cloud.exceptions.GoogleCloudError as e:
         logging.error('Error while writing custom metric: {0}'.format(e))
         raise ErrorResponse('Error while writing custom metric: {0}'.format(e))
 
@@ -144,17 +152,14 @@ def _create_descriptor(name, client):
         name,
         metric_kind=google.cloud.monitoring.MetricKind.GAUGE,
         value_type=google.cloud.monitoring.ValueType.INT64,
-        description='Test Metric'
-        )
+        description='Test Metric')
     descriptor.create()
 
 
 @app.route('/exception', methods=['POST'])
+@verify_request
 def _exception():
     request_data = request.get_json()
-    if request_data is None:
-        raise ErrorResponse('Unable to parse request JSON: '
-                            'did you set the Content-type header?')
     token = request_data.get('token')
     if not token:
         raise ErrorResponse('Please provide token')
@@ -167,7 +172,7 @@ def _exception():
             client.report_exception()
 
         client.report(token)
-    except Exception as e:
+    except google.cloud.exceptions.GoogleCloudError as e:
         logging.error('Error while reporting exception: {0}'.format(e))
         raise ErrorResponse('Error while reporting exception: {0}'.format(e))
 
@@ -203,4 +208,4 @@ def handle_invalid_usage(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, port=8080)
