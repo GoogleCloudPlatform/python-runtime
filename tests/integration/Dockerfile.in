@@ -19,6 +19,4 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/auth.json
-
 ENTRYPOINT ["gunicorn", "-b", ":8080", "server:app"]

@@ -44,7 +44,6 @@ def _logging():
     if not token:
         raise ErrorResponse('Please provide token name')
 
-    _log("log name is {0}, token is {1}".format(log_name, token))
     _log(token, log_name)
 
     return 'OK', 200
