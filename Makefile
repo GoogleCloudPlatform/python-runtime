@@ -2,12 +2,10 @@ ifdef FORCE_REBUILD
 	DOCKER_FLAGS = --no-cache --pull
 endif
 
-# Note: 'make build/tests/benchmarks' share images by retagging the
-# candidate as 'google/python'.  So this could cause trouble with
-# concurrent builds on the same machine.
-CANDIDATE_NAME ?= $(shell date +%Y-%m-%d_%H_%M)
-IMAGE_NAME ?= google/python:$(CANDIDATE_NAME)
-export IMAGE_NAME
+ifndef IMAGE_NAME
+$(error IMAGE_NAME is not set; invoke make with something like IMAGE_NAME=google/python:2017-01-02_03_45)
+endif
+
 
 .PHONY: local-image
 local-image: build-interpreters
