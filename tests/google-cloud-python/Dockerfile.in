@@ -14,5 +14,4 @@ RUN python2.7 scripts/run_unit_tests.py
 RUN python3.4 scripts/run_unit_tests.py
 
 # Run Python 3.5 unit tests
-ENV PATH /opt/python3.5/bin:$PATH
 RUN python3.5 scripts/run_unit_tests.py
