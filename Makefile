@@ -6,6 +6,10 @@ ifndef IMAGE_NAME
 $(error IMAGE_NAME is not set; invoke make with something like IMAGE_NAME=google/python:2017-01-02_03_45)
 endif
 
+.PHONY: all
+all:
+	cloud-test
+
 ## Files that must be refreshed every build
 
 .PHONY: cloudbuild.yaml # Force reevaluation of env vars every time

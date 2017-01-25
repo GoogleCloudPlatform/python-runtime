@@ -2,10 +2,10 @@
 # a `git clone` which can not be cached.
 DOCKER_FLAGS ?= --no-cache
 
+.PHONY: all
+all: Dockerfile
+	docker build $(DOCKER_FLAGS) .
+
 .PHONY:	Dockerfile
 Dockerfile: Dockerfile.in
 	envsubst < $< > $@
-
-.PHONY: all
-all:
-	docker build $(DOCKER_FLAGS) .

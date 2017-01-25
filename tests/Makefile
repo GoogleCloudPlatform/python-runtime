@@ -1,3 +1,6 @@
+.PHONY: all
+all: structure-tests benchmarks google-cloud-python
+
 .PHONY: structure-tests
 structure-tests:
 	make -C no-virtualenv
