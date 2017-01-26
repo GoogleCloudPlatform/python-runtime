@@ -18,5 +18,7 @@ steps:
     '--config', '/workspace/tests/license-test/license-test.yaml',
     '-v'
   ]
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '--tag=google-cloud-python-tests', '--no-cache', '/workspace/tests/google-cloud-python/']
 images:
   ['${IMAGE_NAME}']
