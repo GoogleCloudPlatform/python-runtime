@@ -7,8 +7,7 @@ $(error IMAGE_NAME is not set; invoke make with something like IMAGE_NAME=google
 endif
 
 .PHONY: all
-all:
-	cloud-test
+all: cloud-test
 
 ## Files that must be refreshed every build
 
