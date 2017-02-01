@@ -1,6 +1,6 @@
 # The Google App Engine base image is debian (jessie) with ca-certificates
 # installed.
-FROM gcr.io/google_appengine/debian8
+FROM gcr.io/google-appengine/debian8
 
 # Install Python build dependencies
 RUN apt-get update && apt-get install -yq \
