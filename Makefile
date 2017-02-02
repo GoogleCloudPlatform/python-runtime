@@ -1,5 +1,5 @@
-ifdef FORCE_REBUILD
-	DOCKER_FLAGS = --no-cache --pull
+ifneq ($(FORCE_REBUILD),0)
+	export DOCKER_FLAGS=--no-cache --pull
 endif
 
 ifndef IMAGE_NAME
@@ -43,7 +43,6 @@ local-build: local-build-interpreters
 
 .PHONY: local-build-interpreters
 local-build-interpreters:
-	export DOCKER_FLAGS
 	make -C python-interpreter-builder build
 
 .PHONY: local-test
