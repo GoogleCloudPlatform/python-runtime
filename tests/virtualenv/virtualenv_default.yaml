@@ -17,7 +17,7 @@ commandTests:
   - name: "virtualenv installation"
     setup: [["virtualenv", "/env"]]
     command: ["which", "python"]
-    expectedOutput": ["/env/bin/python\n"]
+    expectedOutput: ["/env/bin/python\n"]
 
   - name: "python version"
     command: ["python", "--version"]
