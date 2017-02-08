@@ -29,7 +29,7 @@ ext_run.sh:
 
 .PHONY: cloud-build
 cloud-build: cloudbuild.yaml tests/google-cloud-python/Dockerfile
-	gcloud alpha container builds create . --config=cloudbuild.yaml
+	gcloud beta container builds submit . --config=cloudbuild.yaml
 
 .PHONY: cloud-test
 # structure-tests and google-cloud-python-tests are implicit in cloud-build
