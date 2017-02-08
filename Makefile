@@ -39,7 +39,7 @@ cloud-test: cloud-build integration-tests
 
 .PHONY: local-build
 local-build: local-build-interpreters
-	docker build $(DOCKER_FLAGS) -t "$(IMAGE_NAME)" .
+	docker build $(DOCKER_FLAGS) -t "$(IMAGE_NAME)" runtime-image
 
 .PHONY: local-build-interpreters
 local-build-interpreters:

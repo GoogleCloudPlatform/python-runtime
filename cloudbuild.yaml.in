@@ -1,11 +1,11 @@
 timeout: 7200s
 steps:
 - name: gcr.io/cloud-builders/docker
-  args: ['build', '--tag=interpreter', '--no-cache', 'python-interpreter-builder']
+  args: ['build', '--tag=interpreter', '--no-cache', '/workspace/python-interpreter-builder/']
 - name: interpreter
-  args: ['cp', '/interpreters.tar.gz', '/workspace/']
+  args: ['cp', '/interpreters.tar.gz', '/workspace/runtime-image/interpreters.tar.gz']
 - name: gcr.io/cloud-builders/docker
-  args: ['build', '--tag=${IMAGE_NAME}', '--no-cache', '.']
+  args: ['build', '--tag=${IMAGE_NAME}', '--no-cache', '/workspace/runtime-image/']
 - name: gcr.io/gcp-runtimes/structure_test
   args: [
     '-i', '${IMAGE_NAME}',
