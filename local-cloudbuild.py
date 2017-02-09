@@ -40,38 +40,6 @@ class CloudBuildError(Exception):
     pass
 
 
-def main(argv):
-    """Main entrypoint for cli"""
-    parser = argparse.ArgumentParser(
-        description='Process cloudbuild.yaml locally to build Docker images')
-    parser.add_argument(
-        'cloudbuild', type=str, help='Path to cloudbuild.yaml input file')
-    parser.add_argument(
-        '--keep_workspace',
-        type=bool,
-        default=False,
-        help='Retain workspace directory after building')
-    args = parser.parse_args(argv[1:])
-
-    # Load and parse cloudbuild.yaml
-    with open(args.cloudbuild, 'rb') as infile:
-        cloudbuild = yaml.safe_load(infile)
-
-    host_workspace_parent = tempfile.mkdtemp(prefix='local-cloudbuild_')
-    host_workspace = os.path.join(host_workspace_parent, 'workspace')
-    try:
-        # Prepare workspace
-        print('Running cloudbuild locally.  Host workspace directory is %s' %
-              host_workspace)
-        shutil.copytree('.', host_workspace, symlinks=True)
-
-        # Execute a series of 'docker run' commands locally
-        run_steps(cloudbuild, host_workspace)
-    finally:
-        if not args.keep_workspace:
-            shutil.rmtree(host_workspace_parent, ignore_errors=True)
-
-
 def run_steps(cloudbuild, host_workspace):
     """Run the steps listed in a cloudbuild.yaml file.
 
@@ -156,6 +124,38 @@ def run_docker(name, dir_, env_args, args, host_workspace):
 
     print('Executing ' + ' '.join(process_args))
     subprocess.check_call(process_args)
+
+
+def main(argv):
+    """Main entrypoint for cli"""
+    parser = argparse.ArgumentParser(
+        description='Process cloudbuild.yaml locally to build Docker images')
+    parser.add_argument(
+        'cloudbuild', type=str, help='Path to cloudbuild.yaml input file')
+    parser.add_argument(
+        '--keep_workspace',
+        type=bool,
+        default=False,
+        help='Retain workspace directory after building')
+    args = parser.parse_args(argv[1:])
+
+    # Load and parse cloudbuild.yaml
+    with open(args.cloudbuild, 'rb') as infile:
+        cloudbuild = yaml.safe_load(infile)
+
+    host_workspace_parent = tempfile.mkdtemp(prefix='local-cloudbuild_')
+    host_workspace = os.path.join(host_workspace_parent, 'workspace')
+    try:
+        # Prepare workspace
+        print('Running cloudbuild locally.  Host workspace directory is %s' %
+              host_workspace)
+        shutil.copytree('.', host_workspace, symlinks=True)
+
+        # Execute a series of 'docker run' commands locally
+        run_steps(cloudbuild, host_workspace)
+    finally:
+        if not args.keep_workspace:
+            shutil.rmtree(host_workspace_parent, ignore_errors=True)
 
 
 if __name__ == '__main__':
