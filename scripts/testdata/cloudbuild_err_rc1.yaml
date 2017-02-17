@@ -1,3 +1,0 @@
-steps:
-- name: debian
-  args: ['/bin/sh', '-c', 'exit 1']
