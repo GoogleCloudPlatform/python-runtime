@@ -96,7 +96,7 @@ def get_field_value(container, field_name, field_type):
         field_type (type): Expected type for field value
 
     Returns:
-        any: Fetched or default value of field
+        Any: Fetched or default value of field
 
     Raises:
         ValueError: if field value cannot be converted to the desired type
@@ -143,9 +143,11 @@ def get_cloudbuild(raw_config, args):
         raise ValueError(
             'Expected {} contents to be of type "dict", but found type "{}"'.
             format(args.config, type(raw_config)))
+
     raw_steps = get_field_value(raw_config, 'steps', list)
     if not raw_steps:
         raise ValueError('No steps defined in {}'.format(args.config))
+
     steps = [get_step(raw_step) for raw_step in raw_steps]
     return CloudBuild(
         output_script=args.output_script,
@@ -180,7 +182,7 @@ def get_step(raw_step):
         dir_=dir_,
         env=env,
         name=name,
-        )
+    )
 
 
 def generate_command(step):
