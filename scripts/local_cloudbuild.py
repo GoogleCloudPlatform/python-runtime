@@ -170,12 +170,12 @@ def get_step(raw_step):
             'Expected step to be of type "dict", but found type "{}"'.
             format(type(raw_step)))
     raw_args = get_field_value(raw_step, 'args', list)
-    args = [get_field_value(raw_args, i, str)
-            for i in range(len(raw_args))]
+    args = [get_field_value(raw_args, index, str)
+            for index in range(len(raw_args))]
     dir_ = get_field_value(raw_step, 'dir', str)
     raw_env = get_field_value(raw_step, 'env', list)
-    env = [get_field_value(raw_env, i, str)
-           for i in range(len(raw_env))]
+    env = [get_field_value(raw_env, index, str)
+           for index in range(len(raw_env))]
     name = get_field_value(raw_step, 'name', str)
     return Step(
         args=args,
