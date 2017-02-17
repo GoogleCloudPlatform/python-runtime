@@ -1,2 +1,4 @@
-cloudbuild.yaml
-ext_run.sh
+/cloudbuild.yaml
+/cloudbuild.yaml_local.sh
+/ext_run.sh
+__pycache__
