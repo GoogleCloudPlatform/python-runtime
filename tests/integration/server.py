@@ -52,13 +52,16 @@ def _logging(request_data, token):
     log_name = request_data.get('log_name')
     if not log_name:
         raise ErrorResponse('Please provide log name')
+    level = request_data.get('level')
+    if not level:
+        raise ErrorResponse('Please provide log level')
 
-    _log(token, log_name)
+    _log(token, log_name, level)
 
     return 'OK', 200
 
 
-def _log(token, log_name='stdout'):
+def _log(token, log_name, level):
     """
     Write a log entry to Stackdriver.
 
@@ -66,22 +69,18 @@ def _log(token, log_name='stdout'):
     token -- 16-character (8-byte) hexadecimal token, to be written
     as a log entry.
     log_name -- The name of the logging group to be written to.
+    level -- enum(LogSeverity), level of the log to write
 
     Once the entry is written to Stackdriver, the test driver will retrieve
-    all entries with the name 'log_name', and verify there is an entry with
-    the same value as 'token', indicating the entry was written successfully.
+    all entries with the name 'log_name' at level 'level', and verify there 
+    is an entry with the same value as 'token', indicating the entry 
+    was written successfully.
     """
-
-    # TODO (nkubala): just as a note, currently the client logging API is
-    # broken
-
-    # TODO (nkubala): write token to 'log_name' log, instead of stdout
-    # is this possible in non-standard (flex)???
 
     try:
         client = google.cloud.logging.Client()
         gcloud_logger = client.logger(log_name)
-        gcloud_logger.log_text(token)
+        gcloud_logger.log_text(token, severity=str(level))
     except google.cloud.exceptions.GoogleCloudError as e:
         logging.error('Error while writing logs: {0}'.format(e))
         raise ErrorResponse('Error while writing logs: {0}'.format(e))
