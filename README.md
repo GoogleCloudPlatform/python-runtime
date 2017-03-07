@@ -102,7 +102,7 @@ $ make local-test
 To open an interactive shell session to this image after building it, do the following:
 
 ``` shell
-docker run --it --entrypoint /bin/bash ${IMAGE_NAME}
+docker run -it --entrypoint /bin/bash ${IMAGE_NAME}
 ```
 
 ## Running the system tests
