@@ -1,0 +1,11 @@
+steps:
+- name: debian
+  args: ['/bin/sh', '-c', 'echo "$_FOO"']
+- name: debian
+  args: ['/usr/bin/test', 'this is foo value', '=', '$_FOO']
+- name: debian
+  args: ['/usr/bin/test', 'this is foo value', '=', '${_FOO}']
+- name: debian
+  args: ['/bin/sh', '-c', 'test "this is foo value" = "$_FOO"']
+- name: debian
+  args: ['/bin/sh', '-c', 'test "this is foo value" = "${_FOO}"']

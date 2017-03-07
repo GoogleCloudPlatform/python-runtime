@@ -1,0 +1,11 @@
+steps:
+- name: debian
+  args: ['/bin/sh', '-c', 'echo "$PROJECT_ID"']
+- name: debian
+  args: ['/usr/bin/test', 'dummy-project-id', '=', '$PROJECT_ID']
+- name: debian
+  args: ['/usr/bin/test', 'dummy-project-id', '=', '${PROJECT_ID}']
+- name: debian
+  args: ['/bin/sh', '-c', 'test dummy-project-id = "$PROJECT_ID"']
+- name: debian
+  args: ['/bin/sh', '-c', 'test dummy-project-id = "${PROJECT_ID}"']

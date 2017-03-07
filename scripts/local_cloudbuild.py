@@ -21,7 +21,9 @@ series of commands for the locally installed Docker daemon.  These
 commands are output as a shell script and optionally executed.
 
 The output images are not pushed to the Google Container Registry.
-Not all cloudbuild.yaml functionality is supported.
+Not all cloudbuild.yaml functionality is supported.  In particular,
+substitutions are a simplified subset that doesn't include all the
+corner cases and error conditions.
 
 See https://cloud.google.com/container-builder/docs/api/build-steps
 for more information.
@@ -43,6 +45,28 @@ import yaml
 
 # Exclude non-printable control characters (including newlines)
 PRINTABLE_REGEX = re.compile(r"""^[^\x00-\x1f]*$""")
+
+# Container Builder substitutions
+# https://cloud.google.com/container-builder/docs/api/build-requests#substitutions
+SUBSTITUTION_REGEX = re.compile(r"""(?x)
+    (?<!\\)           # Don't match if backslash before dollar sign
+    \$                # Dollar sign
+    (
+        [A-Z0-9_]+   # Variable name, no curly brackets
+        |
+        {[A-Z0-9_]+} # Variable name, with curly brackets
+    )
+""")
+KEY_VALUE_REGEX = re.compile(r'^([A-Z0-9_]+)=(.*)$')
+
+# Default builtin substitutions
+DEFAULT_SUBSTITUTIONS = {
+    'PROJECT_ID': 'dummy-project-id',
+    'REPO_NAME': '',
+    'BRANCH_NAME': '',
+    'TAG_NAME': '',
+    'REVISION_ID': '',
+}
 
 # File template
 BUILD_SCRIPT_HEADER = """\
@@ -77,11 +101,38 @@ echo "Build completed successfully"
 
 
 # Validated cloudbuild recipe + flags
-CloudBuild = collections.namedtuple('CloudBuild', 'output_script run steps')
+CloudBuild = collections.namedtuple('CloudBuild', 'output_script run steps substitutions')
 
 # Single validated step in a cloudbuild recipe
 Step = collections.namedtuple('Step', 'args dir_ env name')
 
+
+def sub_and_quote(s, substitutions):
+    """Return a shell-escaped, variable substituted, version of the string s."""
+
+    def sub(match):
+        """Perform a single substitution."""
+        variable_name = match.group(1)
+        if variable_name[0] == '{':
+            # Strip curly brackets
+            variable_name = variable_name[1:-1]
+        if variable_name not in substitutions:
+            if variable_name.startswith('_'):
+                # User variables must be set
+                raise ValueError(
+                    'Variable "{}" used without being defined.  Try adding '
+                    'it to the --substitutions flag'.format(
+                        variable_name))
+            else:
+                # Builtin variables are silently turned into empty strings
+                value = ''
+        else:
+            value = substitutions.get(variable_name)
+        return value
+
+    substituted_s = re.sub(SUBSTITUTION_REGEX, sub, s)
+    quoted_s = shlex.quote(substituted_s)
+    return quoted_s
 
 def get_field_value(container, field_name, field_type):
     """Fetch a field from a container with typechecking and default values.
@@ -153,6 +204,7 @@ def get_cloudbuild(raw_config, args):
         output_script=args.output_script,
         run=args.run,
         steps=steps,
+        substitutions=args.substitutions,
     )
 
 
@@ -185,23 +237,24 @@ def get_step(raw_step):
     )
 
 
-def generate_command(step):
+def generate_command(step, subs):
     """Generate a single shell command to run for a single cloudbuild step
 
     Args:
         step (Step): Valid build step
+        subs (dict): Substitution map to apply
 
     Returns:
         [str]: A single shell command, expressed as a list of quoted tokens.
     """
-    quoted_args = [shlex.quote(arg) for arg in step.args]
+    quoted_args = [sub_and_quote(arg, subs) for arg in step.args]
     quoted_env = []
     for env in step.env:
-        quoted_env.extend(['--env', shlex.quote(env)])
-    quoted_name = shlex.quote(step.name)
+        quoted_env.extend(['--env', sub_and_quote(env, subs)])
+    quoted_name = sub_and_quote(step.name, subs)
     workdir = '/workspace'
     if step.dir_:
-        workdir = os.path.join(workdir, shlex.quote(step.dir_))
+        workdir = os.path.join(workdir, sub_and_quote(step.dir_, subs))
     process_args = [
         'docker',
         'run',
@@ -228,7 +281,8 @@ def generate_script(cloudbuild):
     """
     outfile = io.StringIO()
     outfile.write(BUILD_SCRIPT_HEADER)
-    docker_commands = [generate_command(step) for step in cloudbuild.steps]
+    docker_commands = [generate_command(step, cloudbuild.substitutions)
+                       for step in cloudbuild.steps]
     for docker_command in docker_commands:
         line = ' '.join(docker_command) + '\n\n'
         outfile.write(line)
@@ -286,6 +340,22 @@ def validate_arg_regex(flag_value, flag_regex):
     return flag_value
 
 
+def validate_arg_dict(flag_value):
+    """Parse a command line flag as a key=val,... dict"""
+    if not flag_value:
+        return {}
+    entries = flag_value.split(',')
+    pairs = []
+    for entry in entries:
+        match = re.match(KEY_VALUE_REGEX, entry)
+        if not match:
+            raise argparse.ArgumentTypeError(
+                'Value "{}" should be a list like _KEY1=value1,_KEY2=value2"'.format(
+                    flag_value))
+        pairs.append((match.group(1), match.group(2)))
+    return dict(pairs)
+
+
 def parse_args(argv):
     """Parse and validate command line flags"""
     parser = argparse.ArgumentParser(
@@ -308,6 +378,12 @@ def parse_args(argv):
         action='store_false',
         help='Create shell script but don\'t execute it',
         dest='run',
+    )
+    parser.add_argument(
+        '--substitutions',
+        type=validate_arg_dict,
+        default={},
+        help='Parameters to be substituted in the build specification',
     )
     args = parser.parse_args(argv[1:])
     if not args.output_script:
