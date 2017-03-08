@@ -112,8 +112,15 @@ CloudBuild = collections.namedtuple('CloudBuild', 'output_script run steps subst
 Step = collections.namedtuple('Step', 'args dir_ env name')
 
 
-def sub_and_quote(s, substitutions):
-    """Return a shell-escaped, variable substituted, version of the string s."""
+def sub_and_quote(s, substitutions, substitutions_used):
+    """Return a shell-escaped, variable substituted, version of the string s.
+
+    Args:
+        s (str): Any string
+        subs (dict): Substitution map to apply
+        subs_used (set): Updated with names from `subs.keys()` when those
+                         substitutions are encountered in `s`
+    """
 
     def sub(match):
         """Perform a single substitution."""
@@ -133,6 +140,7 @@ def sub_and_quote(s, substitutions):
                 value = ''
         else:
             value = substitutions.get(variable_name)
+        substitutions_used.add(variable_name)
         return value
 
     substituted_s = re.sub(SUBSTITUTION_REGEX, sub, s)
@@ -242,24 +250,29 @@ def get_step(raw_step):
     )
 
 
-def generate_command(step, subs):
+def generate_command(step, substitutions, substitutions_used):
     """Generate a single shell command to run for a single cloudbuild step
 
     Args:
         step (Step): Valid build step
         subs (dict): Substitution map to apply
+        subs_used (set): Updated with names from `subs.keys()` when those
+                         substitutions are encountered in an element of `step`
 
     Returns:
         [str]: A single shell command, expressed as a list of quoted tokens.
     """
-    quoted_args = [sub_and_quote(arg, subs) for arg in step.args]
+    quoted_args = [sub_and_quote(arg, substitutions, substitutions_used)
+                   for arg in step.args]
     quoted_env = []
     for env in step.env:
-        quoted_env.extend(['--env', sub_and_quote(env, subs)])
-    quoted_name = sub_and_quote(step.name, subs)
+        quoted_env.extend(['--env', sub_and_quote(env, substitutions,
+                                                  substitutions_used)])
+    quoted_name = sub_and_quote(step.name, substitutions, substitutions_used)
     workdir = '/workspace'
     if step.dir_:
-        workdir = os.path.join(workdir, sub_and_quote(step.dir_, subs))
+        workdir = os.path.join(workdir, sub_and_quote(step.dir_, substitutions,
+                                                      substitutions_used))
     process_args = [
         'docker',
         'run',
@@ -284,16 +297,27 @@ def generate_script(cloudbuild):
     Returns:
         (str): Contents of shell script
     """
-    outfile = io.StringIO()
-    outfile.write(BUILD_SCRIPT_HEADER)
-    docker_commands = [generate_command(step, cloudbuild.substitutions)
-                       for step in cloudbuild.steps]
-    for docker_command in docker_commands:
-        line = ' '.join(docker_command) + '\n\n'
-        outfile.write(line)
-    outfile.write(BUILD_SCRIPT_FOOTER)
-    s = outfile.getvalue()
-    outfile.close()
+    with io.StringIO() as outfile:
+        outfile.write(BUILD_SCRIPT_HEADER)
+        subs_used = set()
+        docker_commands = [
+            generate_command(step, cloudbuild.substitutions, subs_used)
+            for step in cloudbuild.steps]
+        for docker_command in docker_commands:
+            line = ' '.join(docker_command) + '\n\n'
+            outfile.write(line)
+        outfile.write(BUILD_SCRIPT_FOOTER)
+        s = outfile.getvalue()
+
+    # Check that all user variables were referenced at least once
+    user_subs_unused = [name for name in cloudbuild.substitutions.keys()
+                        if name not in subs_used and name[0] == '_']
+    if user_subs_unused:
+        nice_list = '"' + '", "'.join(sorted(user_subs_unused)) + '"'
+        raise ValueError(
+            'User substitution variables {} were defined in the --substitution '
+            'flag but never used in the cloudbuild file.'.format(nice_list))
+
     return s
 
 

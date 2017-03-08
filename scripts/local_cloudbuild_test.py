@@ -120,32 +120,37 @@ class LocalCloudbuildTest(unittest.TestCase):
     def test_sub_and_quote(self):
         valid_cases = (
             # Empty string
-            ('', {}, "''"),
+            ('', {}, "''", []),
             # No substitutions
-            ('a', {}, 'a'),
-            # Unused substitutions
-            ('a', {'FOO':'foo'}, 'a'),
+            ('a', {}, 'a', []),
+            # Unused builtin substitutions are fine
+            ('a', {'FOO':'foo'}, 'a', []),
+            # Unused user substitition (ok here but error in generate_script)
+            ('a', {'_FOO':'_foo'}, 'a', []),
             # Defined builtin substitution
-            ('a$FOOb', {'FOO':'foo'}, 'afoob'),
-            ('a${FOO}b', {'FOO':'foo'}, 'afoob'),
+            ('a$FOOb', {'FOO':'foo'}, 'afoob', ['FOO']),
+            ('a${FOO}b', {'FOO':'foo'}, 'afoob', ['FOO']),
             # Undefined builtin substitution
-            ('a$FOOb', {}, 'ab'),
-            ('a${FOO}b', {}, 'ab'),
+            ('a$FOOb', {}, 'ab', ['FOO']),
+            ('a${FOO}b', {}, 'ab', ['FOO']),
             # Defined user substitution
-            ('a$_FOOb', {'_FOO':'_foo'}, 'a_foob'),
-            ('a${_FOO}b', {'_FOO':'_foo'}, 'a_foob'),
+            ('a$_FOOb', {'_FOO':'_foo'}, 'a_foob', ['_FOO']),
+            ('a${_FOO}b', {'_FOO':'_foo'}, 'a_foob', ['_FOO']),
             # Multiple substitutions
-            ('$FOO${FOO}${BAR}$FOO', {'FOO':'foo', 'BAR':'bar'}, 'foofoobarfoo'),
+            ('$FOO${FOO}${BAR}$FOO', {'FOO':'foo', 'BAR':'bar'},
+             'foofoobarfoo', ['FOO', 'BAR']),
             # Invalid names
-            ('a $ b', {}, "'a $ b'"),
-            ('a$foo b', {}, "'a$foo b'"),
-            ('a$0FOO b', {}, "'a$0FOO b'"),
+            ('a $ b', {}, "'a $ b'", []),
+            ('a$foo b', {}, "'a$foo b'", []),
+            ('a$0FOO b', {}, "'a$0FOO b'", []),
         )
         for valid_case in valid_cases:
             with self.subTest(valid_case=valid_case):
-                s, subs, expected = valid_case
-                actual = local_cloudbuild.sub_and_quote(s, subs)
+                s, subs, expected, expected_used = valid_case
+                used = set()
+                actual = local_cloudbuild.sub_and_quote(s, subs, used)
                 self.assertEqual(actual, expected)
+                self.assertEqual(used, set(expected_used))
 
         invalid_cases = (
             # Undefined user substitution
@@ -156,7 +161,8 @@ class LocalCloudbuildTest(unittest.TestCase):
             with self.subTest(invalid_case=invalid_case):
                 s, subs = invalid_case
                 with self.assertRaises(ValueError):
-                    local_cloudbuild.sub_and_quote(s, subs)
+                    used = set()
+                    local_cloudbuild.sub_and_quote(s, subs, used)
 
     def test_get_cloudbuild(self):
         args = argparse.Namespace(
@@ -237,7 +243,7 @@ class LocalCloudbuildTest(unittest.TestCase):
             name = 'aname',
         )
         subs = {'BUILTIN':'builtin', '_USER':'_user'}
-        command = local_cloudbuild.generate_command(base_step, subs)
+        command = local_cloudbuild.generate_command(base_step, subs, set())
         self.assertEqual(command, [
             'docker',
             'run',
@@ -260,49 +266,49 @@ class LocalCloudbuildTest(unittest.TestCase):
 
         # dir specified
         step = base_step._replace(dir_='adir')
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn('--workdir', command)
         self.assertIn('/workspace/adir', command)
 
         # Shell quoting
         step = base_step._replace(args=['arg with \n newline'])
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("'arg with \n newline'", command)
 
         step = base_step._replace(dir_='dir/ with space/')
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("/workspace/'dir/ with space/'", command)
 
         step = base_step._replace(env=['env with space'])
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("'env with space'", command)
 
         step = base_step._replace(name='a name')
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("'a name'", command)
 
         # Variable substitution
         step = base_step._replace(name='a $BUILTIN substitution')
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("'a builtin substitution'", command)
 
         step = base_step._replace(name='a $UNSET_BUILTIN substitution')
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("'a  substitution'", command)
 
         step = base_step._replace(name='a $_USER substitution')
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("'a _user substitution'", command)
 
         step = base_step._replace(name='a $_UNSET_USER substitution')
         with self.assertRaises(ValueError):
-            local_cloudbuild.generate_command(step, subs)
+            local_cloudbuild.generate_command(step, subs, set())
 
         step = base_step._replace(name='a curly brace ${BUILTIN} substitution')
-        command = local_cloudbuild.generate_command(step, subs)
+        command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("'a curly brace builtin substitution'", command)
 
-    def test_generate_script(self):
+    def test_generate_script_golden(self):
         config_name = 'cloudbuild_ok.yaml'
         config = os.path.join(self.testdata_dir, config_name)
         expected_output_script = os.path.join(self.testdata_dir, config_name + '_golden.sh')
@@ -330,6 +336,16 @@ class LocalCloudbuildTest(unittest.TestCase):
         # Compare output against golden
         with open(expected_output_script, 'r', encoding='utf8') as expected:
             self.assertEqual(actual, expected.read())
+
+    def test_generate_script_unused_user_substitution(self):
+        cloudbuild = local_cloudbuild.CloudBuild(
+            output_script='',
+            run=False,
+            steps=[],
+            substitutions={'_FOO':'_foo'},
+        )
+        with self.assertRaisesRegexp(ValueError, 'User substitution variables'):
+            actual = local_cloudbuild.generate_script(cloudbuild)
 
     def test_make_executable(self):
         with tempfile.TemporaryDirectory(
