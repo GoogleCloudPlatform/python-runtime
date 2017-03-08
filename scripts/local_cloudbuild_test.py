@@ -103,6 +103,7 @@ class ValidationUtilsTest(unittest.TestCase):
             # Invalid variable name
             '_Aa=1',
             '_aA=1',
+            '0A=1',
         )
         for invalid_case in invalid_cases:
             with self.subTest(invalid_case=invalid_case):
@@ -135,6 +136,10 @@ class LocalCloudbuildTest(unittest.TestCase):
             ('a${_FOO}b', {'_FOO':'_foo'}, 'a_foob'),
             # Multiple substitutions
             ('$FOO${FOO}${BAR}$FOO', {'FOO':'foo', 'BAR':'bar'}, 'foofoobarfoo'),
+            # Invalid names
+            ('a $ b', {}, "'a $ b'"),
+            ('a$foo b', {}, "'a$foo b'"),
+            ('a$0FOO b', {}, "'a$0FOO b'"),
         )
         for valid_case in valid_cases:
             with self.subTest(valid_case=valid_case):

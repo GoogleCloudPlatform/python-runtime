@@ -49,15 +49,18 @@ PRINTABLE_REGEX = re.compile(r"""^[^\x00-\x1f]*$""")
 # Container Builder substitutions
 # https://cloud.google.com/container-builder/docs/api/build-requests#substitutions
 SUBSTITUTION_REGEX = re.compile(r"""(?x)
-    (?<!\\)           # Don't match if backslash before dollar sign
-    \$                # Dollar sign
+    (?<!\\)                # Don't match if backslash before dollar sign
+    \$                     # Dollar sign
     (
-        [A-Z0-9_]+   # Variable name, no curly brackets
+        [A-Z_][A-Z0-9_]*   # Variable name, no curly brackets
         |
-        {[A-Z0-9_]+} # Variable name, with curly brackets
+        {[A-Z_][A-Z0-9_]*} # Variable name, with curly brackets
     )
 """)
-KEY_VALUE_REGEX = re.compile(r'^([A-Z0-9_]+)=(.*)$')
+
+# For easier development, we allow redefining builtins like
+# --substitutions=PROJECT_ID=foo even though gcloud doesn't.
+KEY_VALUE_REGEX = re.compile(r'^([A-Z_][A-Z0-9_]*)=(.*)$')
 
 # Default builtin substitutions
 DEFAULT_SUBSTITUTIONS = {
