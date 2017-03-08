@@ -61,11 +61,13 @@ KEY_VALUE_REGEX = re.compile(r'^([A-Z0-9_]+)=(.*)$')
 
 # Default builtin substitutions
 DEFAULT_SUBSTITUTIONS = {
+    'BRANCH_NAME': '',
+    'BUILD_ID': 'abcdef12-3456-7890-abcd-ef0123456789',
+    'COMMIT_SHA': '',
     'PROJECT_ID': 'dummy-project-id',
     'REPO_NAME': '',
-    'BRANCH_NAME': '',
-    'TAG_NAME': '',
     'REVISION_ID': '',
+    'TAG_NAME': '',
 }
 
 # File template
