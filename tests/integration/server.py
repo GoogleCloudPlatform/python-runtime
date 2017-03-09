@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,6 +24,19 @@ import google.cloud.exceptions
 
 from flask import Flask, request, jsonify
 
+# set up logging module to write to Stackdriver
+client = google.cloud.logging.Client()
+client.setup_logging(log_level=logging.DEBUG)
+logging.getLogger().setLevel(logging.DEBUG)
+
+log_funcs = {
+    'DEBUG': (logging.debug, 'stderr'),
+    'INFO': (logging.info, 'stderr'),
+    'WARNING': (logging.warn, 'stderr'),
+    'ERROR': (logging.error, 'stderr'),
+    'CRITICAL': (logging.critical, 'stderr')
+}
+
 app = Flask(__name__)
 
 
@@ -46,9 +59,9 @@ def hello_world():
     return 'Hello World!'
 
 
-@app.route('/logging', methods=['POST'])
+@app.route('/logging_custom', methods=['POST'])
 @verify_request
-def _logging(request_data, token):
+def _logging_custom(request_data, token):
     log_name = request_data.get('log_name')
     if not log_name:
         raise ErrorResponse('Please provide log name')
@@ -56,14 +69,26 @@ def _logging(request_data, token):
     if not level:
         raise ErrorResponse('Please provide log level')
 
-    _log(token, log_name, level)
+    log_source = _log_custom(token, log_name, level)
 
-    return 'OK', 200
+    return log_source, 200
 
 
-def _log(token, log_name, level):
+@app.route('/logging_standard', methods=['POST'])
+@verify_request
+def _logging_standard(request_data, token):
+    level = request_data.get('level')
+    if not level:
+        raise ErrorResponse('Please provide log level')
+
+    log_source = _log_default(token, level)
+
+    return log_source, 200
+
+
+def _log_custom(token, log_name, level):
     """
-    Write a log entry to Stackdriver.
+    Write a custom log entry to Stackdriver using a client library.
 
     Keyword arguments:
     token -- 16-character (8-byte) hexadecimal token, to be written
@@ -72,11 +97,10 @@ def _log(token, log_name, level):
     level -- enum(LogSeverity), level of the log to write
 
     Once the entry is written to Stackdriver, the test driver will retrieve
-    all entries with the name 'log_name' at level 'level', and verify there 
-    is an entry with the same value as 'token', indicating the entry 
+    all entries with the name 'log_name' at level 'level', and verify there
+    is an entry with the same value as 'token', indicating the entry
     was written successfully.
     """
-
     try:
         client = google.cloud.logging.Client()
         gcloud_logger = client.logger(log_name)
@@ -85,8 +109,34 @@ def _log(token, log_name, level):
         logging.error('Error while writing logs: {0}'.format(e))
         raise ErrorResponse('Error while writing logs: {0}'.format(e))
 
-    logging.debug(token)
-    print(token)
+    return log_name
+
+
+def _log_default(token, level):
+    """
+    Write a log entry to Stackdriver through the default logging module.
+
+    Keyword arguments:
+    token -- 16-character (8-byte) hexadecimal token, to be written
+    as a log entry.
+    level -- enum(LogSeverity), level of the log to write
+
+    Once the entry is written to Stackdriver, the test driver will retrieve
+    all entries from the default log stream (sent back to the driver) at level
+    'level', and verify there is an entry with the same value as 'token',
+    indicating the entry was written successfully.
+    """
+
+    try:
+        func_pair = log_funcs[level]
+        f = func_pair[0]
+        source = func_pair[1]
+        f(token)
+    except google.cloud.exceptions.GoogleCloudError as e:
+        logging.error('Error while writing logs: {0}'.format(e))
+        raise ErrorResponse('Error while writing logs: {0}'.format(e))
+
+    return 'appengine.googleapis.com%2F{0}'.format(source)
 
 
 @app.route('/monitoring', methods=['POST'])
