@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from functools import wraps
+import json
 import logging
 
 import google.cloud.logging
@@ -216,6 +217,18 @@ def _exception(request_data, token):
 @app.route('/trace', methods=['POST'])
 def _trace():
     return 'OK', 204
+
+
+@app.route('/custom', methods=['GET'])
+def _custom():
+    tests = [
+        {
+            'name': 'foo',
+            'path': '/',
+            'timeout': 500
+        }
+    ]
+    return json.dumps(tests), 200
 
 
 class ErrorResponse(Exception):
