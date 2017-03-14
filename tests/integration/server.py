@@ -24,11 +24,6 @@ import google.cloud.exceptions
 
 from flask import Flask, request, jsonify
 
-# set up logging module to write to Stackdriver
-client = google.cloud.logging.Client()
-client.setup_logging(log_level=logging.DEBUG)
-logging.getLogger().setLevel(logging.DEBUG)
-
 log_funcs = {
     'DEBUG': (logging.debug, 'stderr'),
     'INFO': (logging.info, 'stderr'),
@@ -247,4 +242,8 @@ def handle_invalid_usage(error):
 
 
 if __name__ == '__main__':
+    # set up logging module to write to Stackdriver
+    client = google.cloud.logging.Client()
+    client.setup_logging(log_level=logging.DEBUG)
+    logging.getLogger().setLevel(logging.DEBUG)
     app.run(debug=True, port=8080)
