@@ -49,12 +49,13 @@ PRINTABLE_REGEX = re.compile(r"""^[^\x00-\x1f]*$""")
 # Container Builder substitutions
 # https://cloud.google.com/container-builder/docs/api/build-requests#substitutions
 SUBSTITUTION_REGEX = re.compile(r"""(?x)
-    (?<!\\)                # Don't match if backslash before dollar sign
-    \$                     # Dollar sign
+    [$]                    # Dollar sign
     (
         [A-Z_][A-Z0-9_]*   # Variable name, no curly brackets
         |
         {[A-Z_][A-Z0-9_]*} # Variable name, with curly brackets
+        |
+        [$]                # $$, translated to a single literal $
     )
 """)
 
@@ -128,16 +129,14 @@ def sub_and_quote(s, substitutions, substitutions_used):
         if variable_name[0] == '{':
             # Strip curly brackets
             variable_name = variable_name[1:-1]
-        if variable_name not in substitutions:
-            if variable_name.startswith('_'):
-                # User variables must be set
-                raise ValueError(
-                    'Variable "{}" used without being defined.  Try adding '
-                    'it to the --substitutions flag'.format(
-                        variable_name))
-            else:
-                # Builtin variables are silently turned into empty strings
-                value = ''
+        if variable_name == '$':
+            value = '$'
+        elif variable_name not in substitutions:
+            # Variables must be set
+            raise ValueError(
+                'Variable "{}" used without being defined.  Try adding '
+                'it to the --substitutions flag'.format(
+                    variable_name))
         else:
             value = substitutions.get(variable_name)
         substitutions_used.add(variable_name)

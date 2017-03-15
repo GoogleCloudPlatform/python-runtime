@@ -123,16 +123,12 @@ class LocalCloudbuildTest(unittest.TestCase):
             ('', {}, "''", []),
             # No substitutions
             ('a', {}, 'a', []),
-            # Unused builtin substitutions are fine
+            # Unused substitition (ok here but error in generate_script)
             ('a', {'FOO':'foo'}, 'a', []),
-            # Unused user substitition (ok here but error in generate_script)
             ('a', {'_FOO':'_foo'}, 'a', []),
             # Defined builtin substitution
             ('a$FOOb', {'FOO':'foo'}, 'afoob', ['FOO']),
             ('a${FOO}b', {'FOO':'foo'}, 'afoob', ['FOO']),
-            # Undefined builtin substitution
-            ('a$FOOb', {}, 'ab', ['FOO']),
-            ('a${FOO}b', {}, 'ab', ['FOO']),
             # Defined user substitution
             ('a$_FOOb', {'_FOO':'_foo'}, 'a_foob', ['_FOO']),
             ('a${_FOO}b', {'_FOO':'_foo'}, 'a_foob', ['_FOO']),
@@ -153,6 +149,9 @@ class LocalCloudbuildTest(unittest.TestCase):
                 self.assertEqual(used, set(expected_used))
 
         invalid_cases = (
+            # Undefined builtin substitution
+            ('a$FOOb', {}),
+            ('a${FOO}b', {}),
             # Undefined user substitution
             ('a$_FOOb', {}),
             ('a${_FOO}b', {}),
@@ -293,8 +292,8 @@ class LocalCloudbuildTest(unittest.TestCase):
         self.assertIn("'a builtin substitution'", command)
 
         step = base_step._replace(name='a $UNSET_BUILTIN substitution')
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("'a  substitution'", command)
+        with self.assertRaises(ValueError):
+            command = local_cloudbuild.generate_command(step, subs, set())
 
         step = base_step._replace(name='a $_USER substitution')
         command = local_cloudbuild.generate_command(step, subs, set())
@@ -307,6 +306,10 @@ class LocalCloudbuildTest(unittest.TestCase):
         step = base_step._replace(name='a curly brace ${BUILTIN} substitution')
         command = local_cloudbuild.generate_command(step, subs, set())
         self.assertIn("'a curly brace builtin substitution'", command)
+
+        step = base_step._replace(name='an escaped $$ or $$$$ or $$BUILTIN or $${BUILTIN} is unescaped')
+        command = local_cloudbuild.generate_command(step, subs, set())
+        self.assertIn("'an escaped $ or $$ or $BUILTIN or ${BUILTIN} is unescaped'", command)
 
     def test_generate_script_golden(self):
         config_name = 'cloudbuild_ok.yaml'
