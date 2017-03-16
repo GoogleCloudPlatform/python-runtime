@@ -263,53 +263,45 @@ class LocalCloudbuildTest(unittest.TestCase):
             'arg2',
         ])
 
-        # dir specified
-        step = base_step._replace(dir_='adir')
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn('--workdir', command)
-        self.assertIn('/workspace/adir', command)
+        valid_cases = (
+            # dir specified
+            (base_step._replace(dir_='adir'),
+             ['--workdir', '/workspace/adir']),
+            # Shell quoting
+            (base_step._replace(args=['arg with \n newline']),
+             ["'arg with \n newline'"]),
+            (base_step._replace(dir_='dir/ with space/'),
+             ["/workspace/'dir/ with space/'"]),
+            (base_step._replace(env=['env with space']),
+             ["'env with space'"]),
+            (base_step._replace(name='a name'),
+             ["'a name'"]),
+            # Variable substitution
+            (base_step._replace(name='a $BUILTIN substitution'),
+             ["'a builtin substitution'"]),
+            (base_step._replace(name='a $_USER substitution'),
+             ["'a _user substitution'"]),
+            (base_step._replace(name='a curly brace ${BUILTIN} substitution'),
+             ["'a curly brace builtin substitution'"]),
+            (base_step._replace(name='an escaped $$ or $$$$ or $$FOO or $${_FOO} is unescaped'),
+             ["'an escaped $ or $$ or $FOO or ${_FOO} is unescaped'"]),
+        )
+        for valid_case in valid_cases:
+            with self.subTest(valid_case=valid_case):
+                step, args = valid_case
+                command = local_cloudbuild.generate_command(step, subs, set())
+                for arg in args:
+                    self.assertIn(arg, command)
 
-        # Shell quoting
-        step = base_step._replace(args=['arg with \n newline'])
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("'arg with \n newline'", command)
-
-        step = base_step._replace(dir_='dir/ with space/')
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("/workspace/'dir/ with space/'", command)
-
-        step = base_step._replace(env=['env with space'])
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("'env with space'", command)
-
-        step = base_step._replace(name='a name')
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("'a name'", command)
-
-        # Variable substitution
-        step = base_step._replace(name='a $BUILTIN substitution')
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("'a builtin substitution'", command)
-
-        step = base_step._replace(name='a $UNSET_BUILTIN substitution')
-        with self.assertRaises(ValueError):
-            command = local_cloudbuild.generate_command(step, subs, set())
-
-        step = base_step._replace(name='a $_USER substitution')
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("'a _user substitution'", command)
-
-        step = base_step._replace(name='a $_UNSET_USER substitution')
-        with self.assertRaises(ValueError):
-            local_cloudbuild.generate_command(step, subs, set())
-
-        step = base_step._replace(name='a curly brace ${BUILTIN} substitution')
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("'a curly brace builtin substitution'", command)
-
-        step = base_step._replace(name='an escaped $$ or $$$$ or $$BUILTIN or $${BUILTIN} is unescaped')
-        command = local_cloudbuild.generate_command(step, subs, set())
-        self.assertIn("'an escaped $ or $$ or $BUILTIN or ${BUILTIN} is unescaped'", command)
+        invalid_cases = (
+            base_step._replace(name='a $UNSET_BUILTIN substitution'),
+            base_step._replace(name='a $_UNSET_USER substitution'),
+        )
+        for invalid_case in invalid_cases:
+            with self.subTest(invalid_case=invalid_case):
+                step = invalid_case
+                with self.assertRaises(ValueError):
+                    local_cloudbuild.generate_command(step, subs, set())
 
     def test_generate_script_golden(self):
         config_name = 'cloudbuild_ok.yaml'
