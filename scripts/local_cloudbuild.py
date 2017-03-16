@@ -44,8 +44,11 @@ import yaml
 # Exclude non-printable control characters (including newlines)
 PRINTABLE_REGEX = re.compile(r"""^[^\x00-\x1f]*$""")
 
+# Use this image for cleanup actions
+DEBIAN_IMAGE='gcr.io/google-appengine/debian8'
+
 # File template
-BUILD_SCRIPT_HEADER = """\
+BUILD_SCRIPT_TEMPLATE = """\
 #!/bin/bash
 # This is a generated file.  Do not edit.
 
@@ -54,24 +57,22 @@ set -euo pipefail
 SOURCE_DIR=.
 
 # Setup staging directory
-HOST_WORKSPACE=$(mktemp -d)
-function cleanup {
-    if [ "${HOST_WORKSPACE}" != '/' -a -d "${HOST_WORKSPACE}" ]; then
-        rm -rf "${HOST_WORKSPACE}"
+HOST_WORKSPACE=$(mktemp -d -t local_cloudbuild_XXXXXXXXXX)
+function cleanup {{
+    if [ "${{HOST_WORKSPACE}}" != '/' -a -d "${{HOST_WORKSPACE}}" ]; then
+        {cleanup_str} 2>/dev/null || true
+        rmdir "${{HOST_WORKSPACE}}"
     fi
-}
+}}
 trap cleanup EXIT
 
 # Copy source to staging directory
-echo "Copying source to staging directory ${HOST_WORKSPACE}"
-rsync -avzq --exclude=.git "${SOURCE_DIR}" "${HOST_WORKSPACE}"
+echo "Copying source to staging directory ${{HOST_WORKSPACE}}"
+rsync -avzq --exclude=.git "${{SOURCE_DIR}}" "${{HOST_WORKSPACE}}"
 
 # Build commands
-"""
-
-BUILD_SCRIPT_FOOTER = """\
+{docker_str}
 # End of build commands
-
 echo "Build completed successfully"
 """
 
@@ -226,15 +227,25 @@ def generate_script(cloudbuild):
     Returns:
         (str): Contents of shell script
     """
-    outfile = io.StringIO()
-    outfile.write(BUILD_SCRIPT_HEADER)
+    # This deletes everything in /workspace including hidden files,
+    # but not /workspace itself
+    cleanup_step = Step(
+        args=['rm', '-rf', '/workspace'],
+        dir_='',
+        env=[],
+        name=DEBIAN_IMAGE,
+    )
+    cleanup_command = generate_command(cleanup_step)
+    cleanup_str = ' '.join(cleanup_command)
     docker_commands = [generate_command(step) for step in cloudbuild.steps]
+    docker_lines = []
     for docker_command in docker_commands:
         line = ' '.join(docker_command) + '\n\n'
-        outfile.write(line)
-    outfile.write(BUILD_SCRIPT_FOOTER)
-    s = outfile.getvalue()
-    outfile.close()
+        docker_lines.append(line)
+    docker_str = ''.join(docker_lines)
+
+    s = BUILD_SCRIPT_TEMPLATE.format(cleanup_str=cleanup_str,
+                                     docker_str=docker_str)
     return s
 
 
@@ -259,6 +270,9 @@ def local_cloudbuild(args):
 
     Args:
         args: command line flags as per parse_args
+
+    Returns:
+        str: Output of build, or None if build not run
     """
     # Load and parse cloudbuild.yaml
     with open(args.config, 'r', encoding='utf8') as cloudbuild_file:
@@ -274,7 +288,9 @@ def local_cloudbuild(args):
     # Run shell script
     if cloudbuild.run:
         args = [os.path.abspath(cloudbuild.output_script)]
-        subprocess.check_call(args)
+        return subprocess.check_output(args)
+    else:
+        return None
 
 
 def validate_arg_regex(flag_value, flag_regex):

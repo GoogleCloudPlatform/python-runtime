@@ -6,10 +6,11 @@ set -euo pipefail
 SOURCE_DIR=.
 
 # Setup staging directory
-HOST_WORKSPACE=$(mktemp -d)
+HOST_WORKSPACE=$(mktemp -d -t local_cloudbuild_XXXXXXXXXX)
 function cleanup {
     if [ "${HOST_WORKSPACE}" != '/' -a -d "${HOST_WORKSPACE}" ]; then
-        rm -rf "${HOST_WORKSPACE}"
+        docker run --volume /var/run/docker.sock:/var/run/docker.sock --volume /root/.docker:/root/.docker --volume ${HOST_WORKSPACE}:/workspace --workdir /workspace gcr.io/google-appengine/debian8 rm -rf /workspace 2>/dev/null || true
+        rmdir "${HOST_WORKSPACE}"
     fi
 }
 trap cleanup EXIT
@@ -23,6 +24,6 @@ docker run --volume /var/run/docker.sock:/var/run/docker.sock --volume /root/.do
 
 docker run --volume /var/run/docker.sock:/var/run/docker.sock --volume /root/.docker:/root/.docker --volume ${HOST_WORKSPACE}:/workspace --workdir /workspace --env 'MESSAGE=Goodbye\n And Farewell!' --env UNUSED=unused debian /bin/sh -c 'echo "${MESSAGE}"'
 
-# End of build commands
 
+# End of build commands
 echo "Build completed successfully"

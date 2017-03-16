@@ -82,6 +82,15 @@ class LocalCloudbuildTest(unittest.TestCase):
         self.testdata_dir = 'testdata'
         assert os.path.isdir(self.testdata_dir), 'Could not run test: testdata directory not found'
 
+    def have_docker(self):
+        """Determine if the Docker daemon is present and usable"""
+        if ((shutil.which('docker') is not None) and
+            (subprocess.call(['docker', 'info'],
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL) == 0)):
+            return True
+        return False
+
     def test_get_cloudbuild(self):
         args = argparse.Namespace(
             config='some_config_file',
@@ -258,12 +267,7 @@ class LocalCloudbuildTest(unittest.TestCase):
 
     def test_local_cloudbuild(self):
         # Actually run it if we can find a docker command.
-        should_run = False
-        if ((shutil.which('docker') is not None) and
-            (subprocess.call(['docker', 'info'],
-                             stdout=subprocess.DEVNULL,
-                             stderr=subprocess.DEVNULL) == 0)):
-            should_run = True
+        should_run = self.have_docker()
 
         # Read cloudbuild.yaml from testdata file, write output to
         # tempdir, and maybe try to run it
@@ -276,9 +280,11 @@ class LocalCloudbuildTest(unittest.TestCase):
                 ('cloudbuild_err_rc1.yaml', False),
                 # Command not found
                 ('cloudbuild_err_not_found.yaml', False),
+                # Cleaning up files owned by root
+                ('cloudbuild_difficult_cleanup.yaml', True),
                 )
             for case in cases:
-                with self.subTest(case=cases):
+                with self.subTest(case=case):
                     config_name, should_succeed = case
                     config = os.path.join(self.testdata_dir, config_name)
                     actual_output_script = os.path.join(
@@ -288,9 +294,16 @@ class LocalCloudbuildTest(unittest.TestCase):
                         output_script=actual_output_script,
                         run=should_run)
                     if should_run:
-                        print("Executing docker commands in {}".format(actual_output_script))
+                        print('Executing docker commands in {}'.format(actual_output_script))
                         if should_succeed:
-                            local_cloudbuild.local_cloudbuild(args)
+                            output = local_cloudbuild.local_cloudbuild(args)
+                            # Check that staging dir was cleaned up
+                            staging_regex = re.compile(
+                                b'(?m)Copying source to staging directory (.+)$')
+                            match = re.search(staging_regex, output)
+                            self.assertTrue(match, output)
+                            staging_dir = match.group(1)
+                            self.assertFalse(os.path.isdir(staging_dir), staging_dir)
                         else:
                             with self.assertRaises(subprocess.CalledProcessError):
                                 local_cloudbuild.local_cloudbuild(args)
