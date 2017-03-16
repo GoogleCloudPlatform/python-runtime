@@ -9,8 +9,10 @@ SOURCE_DIR=.
 HOST_WORKSPACE=$(mktemp -d -t local_cloudbuild_XXXXXXXXXX)
 function cleanup {
     if [ "${HOST_WORKSPACE}" != '/' -a -d "${HOST_WORKSPACE}" ]; then
+        # Expect a single error message about /workspace busy
         docker run --volume /var/run/docker.sock:/var/run/docker.sock --volume /root/.docker:/root/.docker --volume ${HOST_WORKSPACE}:/workspace --workdir /workspace gcr.io/google-appengine/debian8 rm -rf /workspace 2>/dev/null || true
-        rmdir "${HOST_WORKSPACE}"
+        # Do not expect error messages here.  Display but ignore any that happen.
+        rmdir "${HOST_WORKSPACE}" || true
     fi
 }
 trap cleanup EXIT

@@ -60,8 +60,10 @@ SOURCE_DIR=.
 HOST_WORKSPACE=$(mktemp -d -t local_cloudbuild_XXXXXXXXXX)
 function cleanup {{
     if [ "${{HOST_WORKSPACE}}" != '/' -a -d "${{HOST_WORKSPACE}}" ]; then
+        # Expect a single error message about /workspace busy
         {cleanup_str} 2>/dev/null || true
-        rmdir "${{HOST_WORKSPACE}}"
+        # Do not expect error messages here.  Display but ignore any that happen.
+        rmdir "${{HOST_WORKSPACE}}" || true
     fi
 }}
 trap cleanup EXIT
@@ -270,9 +272,6 @@ def local_cloudbuild(args):
 
     Args:
         args: command line flags as per parse_args
-
-    Returns:
-        str: Output of build, or None if build not run
     """
     # Load and parse cloudbuild.yaml
     with open(args.config, 'r', encoding='utf8') as cloudbuild_file:
@@ -288,9 +287,7 @@ def local_cloudbuild(args):
     # Run shell script
     if cloudbuild.run:
         args = [os.path.abspath(cloudbuild.output_script)]
-        return subprocess.check_output(args)
-    else:
-        return None
+        subprocess.check_call(args)
 
 
 def validate_arg_regex(flag_value, flag_regex):
