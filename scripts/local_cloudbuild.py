@@ -74,8 +74,11 @@ DEFAULT_SUBSTITUTIONS = {
     'TAG_NAME': '',
 }
 
+# Use this image for cleanup actions
+DEBIAN_IMAGE='gcr.io/google-appengine/debian8'
+
 # File template
-BUILD_SCRIPT_HEADER = """\
+BUILD_SCRIPT_TEMPLATE = """\
 #!/bin/bash
 # This is a generated file.  Do not edit.
 
@@ -84,24 +87,24 @@ set -euo pipefail
 SOURCE_DIR=.
 
 # Setup staging directory
-HOST_WORKSPACE=$(mktemp -d)
-function cleanup {
-    if [ "${HOST_WORKSPACE}" != '/' -a -d "${HOST_WORKSPACE}" ]; then
-        rm -rf "${HOST_WORKSPACE}"
+HOST_WORKSPACE=$(mktemp -d -t local_cloudbuild_XXXXXXXXXX)
+function cleanup {{
+    if [ "${{HOST_WORKSPACE}}" != '/' -a -d "${{HOST_WORKSPACE}}" ]; then
+        # Expect a single error message about /workspace busy
+        {cleanup_str} 2>/dev/null || true
+        # Do not expect error messages here.  Display but ignore any that happen.
+        rmdir "${{HOST_WORKSPACE}}" || true
     fi
-}
+}}
 trap cleanup EXIT
 
 # Copy source to staging directory
-echo "Copying source to staging directory ${HOST_WORKSPACE}"
-rsync -avzq --exclude=.git "${SOURCE_DIR}" "${HOST_WORKSPACE}"
+echo "Copying source to staging directory ${{HOST_WORKSPACE}}"
+rsync -avzq --exclude=.git "${{SOURCE_DIR}}" "${{HOST_WORKSPACE}}"
 
 # Build commands
-"""
-
-BUILD_SCRIPT_FOOTER = """\
+{docker_str}
 # End of build commands
-
 echo "Build completed successfully"
 """
 
@@ -296,17 +299,19 @@ def generate_script(cloudbuild):
     Returns:
         (str): Contents of shell script
     """
-    with io.StringIO() as outfile:
-        outfile.write(BUILD_SCRIPT_HEADER)
-        subs_used = set()
-        docker_commands = [
-            generate_command(step, cloudbuild.substitutions, subs_used)
-            for step in cloudbuild.steps]
-        for docker_command in docker_commands:
-            line = ' '.join(docker_command) + '\n\n'
-            outfile.write(line)
-        outfile.write(BUILD_SCRIPT_FOOTER)
-        s = outfile.getvalue()
+    # This deletes everything in /workspace including hidden files,
+    # but not /workspace itself
+    cleanup_step = Step(
+        args=['rm', '-rf', '/workspace'],
+        dir_='',
+        env=[],
+        name=DEBIAN_IMAGE,
+    )
+    cleanup_command = generate_command(cleanup_step, {}, set())
+    subs_used = set()
+    docker_commands = [
+        generate_command(step, cloudbuild.substitutions, subs_used)
+        for step in cloudbuild.steps]
 
     # Check that all user variables were referenced at least once
     user_subs_unused = [name for name in cloudbuild.substitutions.keys()
@@ -317,6 +322,15 @@ def generate_script(cloudbuild):
             'User substitution variables {} were defined in the --substitution '
             'flag but never used in the cloudbuild file.'.format(nice_list))
 
+    cleanup_str = ' '.join(cleanup_command)
+    docker_lines = []
+    for docker_command in docker_commands:
+        line = ' '.join(docker_command) + '\n\n'
+        docker_lines.append(line)
+    docker_str = ''.join(docker_lines)
+
+    s = BUILD_SCRIPT_TEMPLATE.format(cleanup_str=cleanup_str,
+                                     docker_str=docker_str)
     return s
 
 

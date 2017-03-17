@@ -1,0 +1,3 @@
+steps:
+- name: debian
+  args: ['/bin/sh', '-c', 'mkdir root; umask 0000; touch root/deny_all.txt']

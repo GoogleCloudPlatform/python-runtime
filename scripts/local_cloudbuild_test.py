@@ -30,6 +30,10 @@ import yaml
 import local_cloudbuild
 
 
+# Matches script boilerplate
+STAGING_DIR_REGEX = re.compile(
+    b'(?m)Copying source to staging directory (.+)$')
+
 class ValidationUtilsTest(unittest.TestCase):
 
     def test_get_field_value(self):
@@ -162,6 +166,25 @@ class LocalCloudbuildTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     used = set()
                     local_cloudbuild.sub_and_quote(s, subs, used)
+
+    def check_call_with_capture(self, *args, **kw_args):
+        """Act like subprocess.check_call but capture stdout"""
+        try:
+            self.check_call_output = subprocess.check_output(*args, **kw_args)
+            print(self.check_call_output)
+        except subprocess.CalledProcessError as e:
+            self.check_call_output = e.output
+            print(self.check_call_output)
+            raise
+
+    def have_docker(self):
+        """Determine if the Docker daemon is present and usable"""
+        if ((shutil.which('docker') is not None) and
+            (subprocess.call(['docker', 'info'],
+                             stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL) == 0)):
+            return True
+        return False
 
     def test_get_cloudbuild(self):
         args = argparse.Namespace(
@@ -339,7 +362,7 @@ class LocalCloudbuildTest(unittest.TestCase):
             steps=[],
             substitutions={'_FOO':'_foo'},
         )
-        with self.assertRaisesRegexp(ValueError, 'User substitution variables'):
+        with self.assertRaisesRegex(ValueError, 'User substitution variables'):
             actual = local_cloudbuild.generate_script(cloudbuild)
 
     def test_make_executable(self):
@@ -369,58 +392,59 @@ class LocalCloudbuildTest(unittest.TestCase):
             self.assertEqual(actual, contents)
 
     def test_local_cloudbuild(self):
-        # Actually run it if we can find a docker command.
-        should_run = False
-        if ((shutil.which('docker') is not None) and
-            (subprocess.call(['docker', 'info'],
-                             stdout=subprocess.DEVNULL,
-                             stderr=subprocess.DEVNULL) == 0)):
-            should_run = True
+        if not self.have_docker():
+            self.fail('This test requires a working Docker daemon')
 
         # Read cloudbuild.yaml from testdata file, write output to
         # tempdir, and maybe try to run it
-        with tempfile.TemporaryDirectory(
-            prefix='local_cloudbuild_test_') as tempdir:
-            cases = (
-                # Everything is ok
-                ('cloudbuild_ok.yaml', None, None),
-                # Builtin substitutions like $PROJECT_ID work
-                ('cloudbuild_builtin_substitutions.yaml', None, None),
-                # User substitutions like $_FOO work
-                ('cloudbuild_user_substitutions.yaml',
-                 {'_FOO':'this is foo value'},
-                 None
-                ),
-                # User substitutions like $_FOO fails when undefined
-                ('cloudbuild_user_substitutions.yaml', None, ValueError),
-                # Exit code 1 (failure)
-                ('cloudbuild_err_rc1.yaml', None, subprocess.CalledProcessError),
-                # Command not found
-                ('cloudbuild_err_not_found.yaml', None, subprocess.CalledProcessError),
+        cases = (
+            # Everything is ok
+            ('cloudbuild_ok.yaml', None, None),
+            # Builtin substitutions like $PROJECT_ID work
+            ('cloudbuild_builtin_substitutions.yaml', None, None),
+            # User substitutions like $_FOO work
+            ('cloudbuild_user_substitutions.yaml',
+             {'_FOO':'this is foo value'},
+             None
+            ),
+            # User substitutions like $_FOO fails when undefined
+            ('cloudbuild_user_substitutions.yaml', None, ValueError),
+            # Exit code 1 (failure)
+            ('cloudbuild_err_rc1.yaml', None, subprocess.CalledProcessError),
+            # Command not found
+            ('cloudbuild_err_not_found.yaml', None, subprocess.CalledProcessError),
+            # Cleaning up files owned by root
+            ('cloudbuild_difficult_cleanup.yaml', None, None),
+        )
+        for case in cases:
+            with self.subTest(case=case), \
+                    tempfile.TemporaryDirectory(prefix='local_cloudbuild_test_') as tempdir, \
+                    unittest.mock.patch('subprocess.check_call', self.check_call_with_capture):
+                config_name, substitutions, exception = case
+                if substitutions is None:
+                    substitutions = local_cloudbuild.DEFAULT_SUBSTITUTIONS
+                should_succeed = (exception is None)
+                config = os.path.join(self.testdata_dir, config_name)
+                actual_output_script = os.path.join(
+                    tempdir, config_name + '_local.sh')
+                args = argparse.Namespace(
+                    config=config,
+                    output_script=actual_output_script,
+                    run=True,
+                    substitutions=substitutions,
                 )
-            for case in cases:
-                with self.subTest(case=case):
-                    config_name, substitutions, exception = case
-                    if substitutions is None:
-                        substitutions = local_cloudbuild.DEFAULT_SUBSTITUTIONS
-                    should_succeed = (exception is None)
-                    config = os.path.join(self.testdata_dir, config_name)
-                    actual_output_script = os.path.join(
-                        tempdir, config_name + '_local.sh')
-                    args = argparse.Namespace(
-                        config=config,
-                        output_script=actual_output_script,
-                        run=should_run,
-                        substitutions=substitutions,
-                    )
-                    if should_run:
-                        print("Executing docker commands in {}".format(actual_output_script))
-                    if should_succeed:
-                        local_cloudbuild.local_cloudbuild(args)
-                    else:
-                        with self.assertRaises(exception):
-                            local_cloudbuild.local_cloudbuild(args)
 
+                if should_succeed:
+                    local_cloudbuild.local_cloudbuild(args)
+                else:
+                    with self.assertRaises(exception):
+                        local_cloudbuild.local_cloudbuild(args)
+
+                # Check that staging dir was cleaned up
+                match = re.search(STAGING_DIR_REGEX, self.check_call_output)
+                self.assertTrue(match)
+                staging_dir = match.group(1)
+                self.assertFalse(os.path.isdir(staging_dir), staging_dir)
 
     def test_parse_args(self):
         # Test explicit output_script
