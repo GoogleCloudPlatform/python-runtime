@@ -1,7 +1,7 @@
 steps:
 - name: debian
-  args: ['/bin/sh', '-c', 'echo "${MESSAGE}"']
+  args: ['/bin/sh', '-c', 'printenv MESSAGE']
   env: ['MESSAGE=Hello World!']
 - name: debian
-  args: ['/bin/sh', '-c', 'echo "${MESSAGE}"']
+  args: ['/bin/sh', '-c', 'printenv MESSAGE']
   env: ['MESSAGE=Goodbye\n And Farewell!', 'UNUSED=unused']
