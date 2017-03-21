@@ -4,7 +4,11 @@ set -eu
 
 RUNTIME_NAME="python"
 
-CANDIDATE_NAME=`date +%Y-%m-%d_%H_%M`
+if [ -z "${TAG}" ] ; then
+  TAG=`date +%Y-%m-%d_%H_%M`
+fi
+
+CANDIDATE_NAME="${TAG}"
 echo "CANDIDATE_NAME:${CANDIDATE_NAME}"
 
 if [ -z "${DOCKER_NAMESPACE+set}" ] ; then
