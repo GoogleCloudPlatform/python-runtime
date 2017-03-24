@@ -6,7 +6,7 @@ anyjson==0.3.3
 apache-libcloud==1.5.0
 argparse==1.4.0
 astroid==1.4.9
-awscli==1.11.64
+awscli==1.11.66
 babel==2.3.4
 backports.ssl_match_hostname==3.5.0.1
 bcdoc==0.16.0
@@ -16,7 +16,7 @@ billiard==3.5.0.2
 blessings==1.6
 blinker==1.4
 boto==2.46.1
-botocore==1.5.27
+botocore==1.5.29
 bottle==0.12.13
 carbon==0.9.15
 celery==4.0.2
