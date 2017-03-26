@@ -6,7 +6,7 @@ anyjson==0.3.3
 apache-libcloud==1.5.0
 argparse==1.4.0
 astroid==1.4.9
-babel==2.3.4
+babel==2.4.0
 beautifulsoup4==4.5.3
 billiard==3.5.0.2
 blessings==1.6
@@ -65,7 +65,7 @@ kombu==4.0.2
 linecache2==1.0.0
 logilab-common==1.4.0
 lxml==3.7.3
-m2crypto==0.25.1
+m2crypto==0.26.0
 mako==1.0.6
 manifestparser==1.1
 markdown==2.6.8
@@ -95,7 +95,7 @@ pillow==4.0.0
 pip==9.0.1
 prettytable
 protobuf==3.2.0
-psutil==5.2.0
+psutil==5.2.1
 psycopg2==2.7.1
 py==1.4.33
 pyasn1-modules==0.0.8
