@@ -167,7 +167,7 @@ rsa==3.4.2
 scipy==0.19.0
 selenium==3.3.1
 setuptools-git==1.2
-setuptools==34.3.2
+setuptools==34.3.3
 sh==1.12.11
 simplejson==3.10.0
 six==1.10.0
