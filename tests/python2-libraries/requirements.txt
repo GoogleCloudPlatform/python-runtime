@@ -1,12 +1,12 @@
 alembic==0.9.1
 amqp==2.1.4
 amqplib==1.0.2
-ansible==2.2.1.0
+ansible==2.2.2.0
 anyjson==0.3.3
 apache-libcloud==1.5.0
 argparse==1.4.0
 astroid==1.4.9
-awscli==1.11.66
+awscli==1.11.67
 babel==2.4.0
 backports.ssl_match_hostname==3.5.0.1
 bcdoc==0.16.0
@@ -16,7 +16,7 @@ billiard==3.5.0.2
 blessings==1.6
 blinker==1.4
 boto==2.46.1
-botocore==1.5.29
+botocore==1.5.30
 bottle==0.12.13
 carbon==0.9.15
 celery==4.0.2
@@ -175,7 +175,7 @@ snowballstemmer==1.2.1
 south==1.0.2
 sphinx==1.5.3
 sqlalchemy-migrate==0.11.0
-sqlalchemy==1.1.6
+sqlalchemy==1.1.7
 sqlparse==0.2.3
 statsd==3.2.1
 stevedore==1.21.0

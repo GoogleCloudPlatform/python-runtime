@@ -1,7 +1,7 @@
 alembic==0.9.1
 amqp==2.1.4
 amqplib==1.0.2
-ansible==2.2.1.0
+ansible==2.2.2.0
 anyjson==0.3.3
 apache-libcloud==1.5.0
 argparse==1.4.0
@@ -143,7 +143,7 @@ snowballstemmer==1.2.1
 south==1.0.2
 sphinx==1.5.3
 sqlalchemy-migrate==0.11.0
-sqlalchemy==1.1.6
+sqlalchemy==1.1.7
 sqlparse==0.2.3
 statsd==3.2.1
 stevedore==1.21.0
