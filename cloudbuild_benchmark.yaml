@@ -1,0 +1,8 @@
+timeout: 3600s
+steps:
+- name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/benchmark:${_TAG}',
+         '--no-cache', '/workspace/tests/benchmark/']
+images: [
+  # Intentionally empty
+]

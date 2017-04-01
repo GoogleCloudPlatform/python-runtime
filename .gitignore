@@ -1,6 +1,6 @@
-/cloudbuild.yaml
-/cloudbuild.yaml_local.sh
-/ext_run.sh
-__pycache__
-.nox
 *.pyc
+.nox
+/cloudbuild.yaml_local.sh
+/cloudbuild_benchmark.yaml_local.sh
+/cloudbuild_system_tests.yaml_local.sh
+__pycache__
