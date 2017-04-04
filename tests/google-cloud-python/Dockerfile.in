@@ -1,17 +1,12 @@
-FROM ${IMAGE_NAME}
-
-# Install tox
-RUN pip install --upgrade tox
+FROM ${FULL_BASE_IMAGE}
 
 # Get the source.
-RUN git clone https://github.com/GoogleCloudPlatform/google-cloud-python.git
+RUN git clone --depth 1 https://github.com/GoogleCloudPlatform/google-cloud-python.git
 WORKDIR google-cloud-python
 
-# Run Python 2.7 unit tests
-RUN python2.7 scripts/run_unit_tests.py
+# Install nox
+RUN pip install --upgrade nox-automation
 
-# Run Python 3.4 unit tests
-RUN python3.4 scripts/run_unit_tests.py
-
-# Run Python 3.5 unit tests
-RUN python3.5 scripts/run_unit_tests.py
+# Run unit tests for all supported Python versions
+ADD run_unit_tests.sh /run_unit_tests.sh
+ENTRYPOINT ["/run_unit_tests.sh"]

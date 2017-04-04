@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM ${STAGING_IMAGE}
+FROM ${FULL_BASE_IMAGE}
 
 COPY . /app
 WORKDIR /app

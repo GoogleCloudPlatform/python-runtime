@@ -1,0 +1,34 @@
+timeout: 7200s
+steps:
+- name: gcr.io/cloud-builders/docker:latest
+  # Compile Python interpreters from source
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}',
+         '--no-cache', '/workspace/python-interpreter-builder/']
+- name: ${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}
+  # Copy interpreters back to workspace
+  args: ['cp', '/interpreters.tar.gz', '/workspace/runtime-image/interpreters.tar.gz']
+- name: gcr.io/cloud-builders/docker:latest
+  # Build base runtime image
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python:${_TAG}',
+         '--no-cache', '/workspace/runtime-image/']
+- name: gcr.io/gcp-runtimes/structure_test:latest
+  # Validate structure of base runtime image
+  args: [
+    '-i', '${_DOCKER_NAMESPACE}/python:${_TAG}',
+    '--config', '/workspace/tests/virtualenv/virtualenv_default.yaml',
+    '--config', '/workspace/tests/virtualenv/virtualenv_python34.yaml',
+    '--config', '/workspace/tests/virtualenv/virtualenv_python35.yaml',
+    '--config', '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
+    '--config', '/workspace/tests/python2-libraries/python2-libraries.yaml',
+    '--config', '/workspace/tests/python3-libraries/python3-libraries.yaml',
+    '--config', '/workspace/tests/license-test/license-test.yaml',
+    '-v'
+    ]
+- name: gcr.io/cloud-builders/docker:latest
+  # Run google client library unit tests against base runtime image
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}',
+         '--no-cache', '/workspace/tests/google-cloud-python/']
+- name: ${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}
+images: [
+  '${_DOCKER_NAMESPACE}/python:${_TAG}'
+]

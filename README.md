@@ -72,73 +72,7 @@ command or entrypoint. For example:
 Google regularly builds and releases this image at
 [`gcr.io/google-appengine/python`](https://gcr.io/google-appengine/python).
 
-To rebuild the image yourself, first set the following variables in your
-shell. You need to be authenticated to a Google Cloud Project to invoke the
-Google Container Builder service, and also to run the system tests.
-
-```shell
-$ export GOOGLE_CLOUD_PROJECT=YOUR-PROJECT-NAME
-$ DOCKER_NAMESPACE=gcr.io/${GCLOUD_PROJECT}
-$ CANDIDATE_NAME=`date +%Y-%m-%d_%H_%M`
-$ export IMAGE_NAME=${DOCKER_NAMESPACE}/python:${CANDIDATE_NAME}
-$ gcloud config set project ${GOOGLE_CLOUD_PROJECT}
-```
-
-To rebuild the image using the Google Container Builder service, do the
-following:
-
-```shell
-$ make cloud-build
-$ make cloud-test
-```
-
-To rebuild the image using your local Docker daemon, do the following:
-
-``` shell
-$ make local-build
-$ make local-test
-```
-
-To open an interactive shell session to this image after building it, do the following:
-
-``` shell
-docker run -it --entrypoint /bin/bash ${IMAGE_NAME}
-```
-
-## Running the system tests
-
-To run the system tests, you need a Google Cloud Project with a service account.
-From the [Google Cloud Console](https://console.cloud.google.com/), either
-create a new project or switch to an existing one. Next,
-[create a service account](
-https://cloud.google.com/iam/docs/creating-managing-service-accounts) that will
-be used to run the system tests. Once you have a service account,
-[create and download a service account key](https://cloud.google.com/iam/docs/managing-service-account-keys).
-
-In the
-[IAM & Admin](https://console.cloud.google.com/permissions/projectpermissions)
-section, grant the `Owner` role to the service account you created above.  Also
-grant the `Editor` role to the `cloud-logs@google.com` service account.
-
-
-Then, follow the
-[system test setup instructions](https://github.com/GoogleCloudPlatform/google-cloud-python/blob/master/CONTRIBUTING.rst#running-system-tests). It
-describes various steps, including running some scripts to populate and/or
-delete datastore example data and indexes (populate_datastore.py,
-clear_datastore.py, and `gcloud preview datastore create-indexes
-system_tests/data/index.yaml`).
-
-From the cloud console, you will need to enable the following APIs for your project:
-
--   Bigquery API
--   Cloud Bigtable Admin API
--   Google Cloud Natural Language API
--   Google Cloud Pub/Sub API
--   Google Cloud Storage JSON API
--   Google Cloud Vision API
--   Google Translate API
--   Stackdriver Logging API
--   Stackdriver Monitoring API
+See [RELEASING.md](RELEASING.md) for more information.
 
 ## Contributing changes
 

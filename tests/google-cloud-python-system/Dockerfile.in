@@ -1,0 +1,16 @@
+FROM ${FULL_BASE_IMAGE}
+
+# Get the source.
+RUN git clone --depth 1 https://github.com/GoogleCloudPlatform/google-cloud-python.git
+WORKDIR google-cloud-python
+
+# Install nox
+RUN pip install --upgrade nox-automation
+
+# Secrets injected at runtime
+ENV GOOGLE_APPLICATION_CREDENTIALS=/workspace/tests/google-cloud-python-system/credentials.json
+ENV GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+
+# Run system tests for all supported Python versions
+ADD run_system_tests.sh /run_system_tests.sh
+ENTRYPOINT ["/run_system_tests.sh"]

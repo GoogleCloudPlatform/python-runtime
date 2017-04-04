@@ -1,4 +1,6 @@
-FROM ${IMAGE_NAME}
+FROM ${FULL_BASE_IMAGE}
 
-RUN hg clone https://hg.python.org/benchmarks /app/benchmarks
+RUN hg clone -r 9923b81a1d34 https://hg.python.org/benchmarks /app/benchmarks
 WORKDIR /app/benchmarks
+RUN python perf.py -r -b default /usr/bin/python2.7 /usr/bin/python3.4
+RUN python perf.py -r -b default /usr/bin/python3.4 /opt/python3.5/bin/python3.5
