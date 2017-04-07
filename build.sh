@@ -101,8 +101,8 @@ if [ "${system_tests}" -eq 1 ]; then
     fatal 'Error: $GOOGLE_APPLICATION_CREDENTIALS is not set; invoke with something like GOOGLE_APPLICATION_CREDENTIALS=/path/to/service/account/creds.json'
   fi
 
-  if [ -z "${GOOGLE_CLOUD_PROJECT+set}" ] ; then
-    fatal 'Error: $GOOGLE_CLOUD_PROJECT is not set; invoke with something like GOOGLE_CLOUD_PROJECT=YOUR-PROJECT-NAME'
+  if [ -z "${GOOGLE_CLOUD_PROJECT_FOR_TESTS+set}" ] ; then
+    fatal 'Error: $GOOGLE_CLOUD_PROJECT_FOR_TESTS is not set; invoke with something like GOOGLE_CLOUD_PROJECT_FOR_TESTS=YOUR-PROJECT-NAME'
   fi
 fi
 
@@ -120,7 +120,7 @@ for outfile in \
   tests/google-cloud-python-system/Dockerfile \
   tests/integration/Dockerfile \
   ; do
-  envsubst <"${outfile}".in >"${outfile}" '$DEBIAN_BASE_IMAGE $FULL_BASE_IMAGE $GOOGLE_CLOUD_PROJECT'
+  envsubst <"${outfile}".in >"${outfile}" '$DEBIAN_BASE_IMAGE $FULL_BASE_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS'
 done
 
 # Build images and push to GCR
@@ -136,7 +136,7 @@ exit_code=0
 
 # Run system tests
 if [ "${system_tests}" -eq 1 ]; then
-  echo "Running system tests using project ${GOOGLE_CLOUD_PROJECT}"
+  echo "Running system tests using project ${GOOGLE_CLOUD_PROJECT_FOR_TESTS}"
 
   trap "rm -f tests/google-cloud-python-system/credentials.json" EXIT
   cp "${GOOGLE_APPLICATION_CREDENTIALS}" tests/google-cloud-python-system/credentials.json

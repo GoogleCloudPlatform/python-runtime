@@ -18,7 +18,7 @@ specified, the current time will be used (timestamp format `YYYY-mm-dd-HHMMSS`).
 GOOGLE_APPLICATION_CREDENTIALS
 : (System test only) Path to service account credentials in JSON format.
 
-GOOGLE_CLOUD_PROJECT
+GOOGLE_CLOUD_PROJECT_FOR_TESTS
 : (System test only) Name of the Google Cloud Platform project to run the system
 tests under.
   
