@@ -8,12 +8,13 @@ dependencies in the final container.
 
 ## Building
 
-Use make:
+Use:
 
-    make build
+    docker build --tag=google/python/interpreter-builder .
 
-The interpreters will be outputted to `output/interpreters.tar.gz`, this is
-suitable to be added directly to a Docker container:
+The interpreters will be stored in the image at `/interpreters.tar.gz`.  This is
+suitable to be extracted from this image and added directly to another Docker
+image via:
 
     ADD interpreters.tar.gz /
 
