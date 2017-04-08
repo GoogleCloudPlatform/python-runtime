@@ -9,7 +9,7 @@ RUN pip install --upgrade nox-automation
 
 # Secrets injected at runtime
 ENV GOOGLE_APPLICATION_CREDENTIALS=/workspace/tests/google-cloud-python-system/credentials.json
-ENV GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+ENV GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT_FOR_TESTS}
 
 # Run system tests for all supported Python versions
 ADD run_system_tests.sh /run_system_tests.sh
