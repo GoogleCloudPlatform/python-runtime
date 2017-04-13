@@ -1,6 +1,6 @@
 FROM gcr.io/google-appengine/python:latest
 
-# Install performance
+# Install pyperformance
 RUN python2 -m pip install performance
 
 # Create virtual environment
