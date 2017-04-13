@@ -1,7 +1,7 @@
 FROM ${FULL_BASE_IMAGE}
 
 # Install performance
-RUN python2 -m pip install performance
+RUN pip install performance
 
 # Create virtual environment
 RUN pip install --upgrade virtualenv
