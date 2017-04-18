@@ -1,0 +1,24 @@
+FROM ${FULL_BASE_IMAGE}
+
+# Install performance
+RUN pip install performance
+
+# Create virtual environment
+RUN pip install --upgrade virtualenv
+
+# Download ensurepip module which prevents the failure when benchmarking python3, can be removed once we drop debian's 3.4
+RUN wget https://www.python.org/ftp/python/3.4.2/Python-3.4.2.tgz
+RUN tar xzf Python-3.4.2.tgz
+RUN cp -R Python-3.4.2/Lib/ensurepip /usr/lib/python3.4
+
+RUN mkdir /${TAG}
+
+# Run the benchmark and compare the performance, add the --debug-single-value flag to let the benchmark run in fastest mode
+RUN pyperformance run --debug-single-value --python=python2.7 -o /${TAG}/py2.7.json
+RUN pyperformance run --debug-single-value --python=python3.4 -o /${TAG}/py3.4.json
+RUN pyperformance run --debug-single-value --python=python3.5 -o /${TAG}/py3.5.json
+RUN pyperformance compare /${TAG}/py2.7.json /${TAG}/py3.4.json --output_style table
+RUN pyperformance compare /${TAG}/py3.4.json /${TAG}/py3.5.json --output_style table
+
+# Initialize mount volume
+VOLUME /${TAG}
