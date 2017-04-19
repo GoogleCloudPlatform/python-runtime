@@ -72,8 +72,16 @@ docker run -it --entrypoint /bin/bash YOUR-IMAGE-NAME
 There is a benchmark suite which compares the performance of interpreters
 against each other.
 
+**Benchmark different versions of interpreter in the same release
+
 ``` shell
-./build.sh --nobuild --benchmark
+DOCKER_NAMESPACE=DOCKER_NAMESPACE_EXAMPLE TAG=TAG_EXAMPLE ./build.sh --nobuild --benchmark
+```
+
+**Benchmark same versions of interpreter from release to release
+
+``` shell
+DOCKER_NAMESPACE=DOCKER_NAMESPACE_EXAMPLE TAG1=TAG1_EXAMPLE TAG2=TAG2_EXAMPLE ./benchmark_between_releases.sh
 ```
 
 Since these benchmarks are run on cloud instances, the timings may vary from run

@@ -11,9 +11,11 @@ RUN wget https://www.python.org/ftp/python/3.4.2/Python-3.4.2.tgz
 RUN tar xzf Python-3.4.2.tgz
 RUN cp -R Python-3.4.2/Lib/ensurepip /usr/lib/python3.4
 
+RUN mkdir /result
+
 # Run the benchmark and compare the performance, add the --debug-single-value flag to let the benchmark run in fastest mode
-RUN pyperformance run --debug-single-value --python=python2.7 -o py2.7.json
-RUN pyperformance run --debug-single-value --python=python3.4 -o py3.4.json
-RUN pyperformance run --debug-single-value --python=python3.5 -o py3.5.json
-RUN pyperformance compare py2.7.json py3.4.json --output_style table
-RUN pyperformance compare py3.4.json py3.5.json --output_style table
+RUN pyperformance run --debug-single-value --python=python2.7 -o /result/py2.7.json
+RUN pyperformance run --debug-single-value --python=python3.4 -o /result/py3.4.json
+RUN pyperformance run --debug-single-value --python=python3.5 -o /result/py3.5.json
+RUN pyperformance compare /result/py2.7.json /result/py3.4.json --output_style table
+RUN pyperformance compare /result/py3.4.json /result/py3.5.json --output_style table
