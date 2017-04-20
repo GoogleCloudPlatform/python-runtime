@@ -5,14 +5,15 @@ set -euo pipefail
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tgz
+# SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-1524b840e42cf3b909e8f8df67c1724012c7dc7f9d076d4feef2d3eff031e8a0  Python-3.5.2.tgz
+d8890b84d773cd7059e597dbefa510340de8336ec9b9e9032bf030f19291565a  Python-3.5.3.tgz
 EOF
-tar xzf Python-3.5.2.tgz
+tar xzf Python-3.5.3.tgz
 
 # Build
-cd Python-3.5.2
+cd Python-3.5.3
 
 # Explanation of flags:
 #
@@ -94,10 +95,11 @@ cd Python-3.5.2
 # python interpreters.  For example:
 #     docker run -it --entrypoint=/opt/python3.5/bin/python3.5 google/python/interpreter-builder -c 'import sysconfig;print("\n".join("%s:%s"%(key,value) for key,value in sorted(sysconfig.get_config_vars().items())))'
 
-mkdir build
-cd build
+mkdir build-static
+cd build-static
+
 ../configure \
-  --build=x86_64-pc-linux-gnu\
+  --build=x86_64-pc-linux-gnu \
   --enable-ipv6 \
   --enable-loadable-sqlite-extensions \
   --enable-optimizations \
@@ -131,5 +133,5 @@ make altinstall
 
 # Clean-up sources
 cd /
-rm /opt/sources/Python-3.5.2.tgz
-rm -r /opt/sources/Python-3.5.2
+rm /opt/sources/Python-3.5.3.tgz
+rm -r /opt/sources/Python-3.5.3
