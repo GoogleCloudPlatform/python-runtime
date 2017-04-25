@@ -67,8 +67,6 @@ cd Python-3.5.3
 #   (Debian) Security hardening
 # CFLAGS=-g
 #   (Debian) More debug info
-# CFLAGS=-O2
-#   (Debian) the default is -O3, don't know why the difference
 # CFLAGS=-Wformat -Werror=format-security
 #   (Debian) Security hardening
 # CPPFLAGS=-D_FORTIFY_SOURCE=2
@@ -113,7 +111,6 @@ cd build-static
   CFLAGS="\
     -fstack-protector-strong \
     -g \
-    -O2 \
     -Wformat -Werror=format-security \
   " \
   CPPFLAGS="\
@@ -125,13 +122,16 @@ cd build-static
   RANLIB="x86_64-linux-gnu-gcc-ranlib" \
 
 # Explicitly build the profile-guided-optimized interpreter
-EXTRA_OPT_CFLAGS="-g -flto -fuse-linker-plugin -ffat-lto-objects"
-NUM_JOBS=$(nproc)
-make -j"$NUM_JOBS" EXTRA_CFLAGS="${EXTRA_OPT_CFLAGS}" profile-opt
-make -j"$NUM_JOBS" EXTRA_CFLAGS="${EXTRA_OPT_CFLAGS}" test
+NUM_JOBS="$(nproc)"
+make \
+  -j"${NUM_JOBS}" \
+  EXTRA_CFLAGS="-g -flto -fuse-linker-plugin -ffat-lto-objects" \
+  PROFILE_TASK='../Lib/test/regrtest.py -s -j 1 -unone,decimal -x test_cmd_line_script test_compiler test_concurrent_futures test_ctypes test_dbm_dumb test_dbm_ndbm test_distutils test_ensurepip test_gdb test_ioctl test_linuxaudiodev test_multiprocessing test_multiprocessing_fork test_multiprocessing_forkserver test_multiprocessing_main_handling test_multiprocessing_spawn test_ossaudiodev test_pydoc test_signal test_socket test_socketserver test_subprocess test_sundry test_thread test_threaded_import test_threadedtempfile test_threading test_threading_local test_threadsignals test_venv test_zipimport_support' \
+  profile-opt
+
 make altinstall
 
 # Clean-up sources
-cd /
+cd /opt
 rm /opt/sources/Python-3.5.3.tgz
 rm -r /opt/sources/Python-3.5.3
