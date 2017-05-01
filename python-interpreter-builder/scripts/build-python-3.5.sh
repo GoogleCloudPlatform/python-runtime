@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -euo pipefail
+set -x
 
 # Get the source
 mkdir -p /opt/sources
@@ -26,12 +27,6 @@ cd Python-3.5.3
 #   (https://bugs.python.org/issue27685)
 # --without-ensurepip
 #   Debian unbundles pip for their own reasons
-# --with-system-expat
-#   (Debian) for compatibility with other Debian packages
-# --with-system-ffi
-#   (Debian) for compatibility with other Debian packages
-# --with-system-libmpdec
-#   (Debian) for compatibility with other Debian packages
 # CFLAGS=-fdebug-prefix-map
 #   Unnecessary in our build environment
 #
@@ -59,6 +54,12 @@ cd Python-3.5.3
 #   would prefer one over the other.
 # --with-fpectl
 #   (Debian) Floating point exception control
+# --with-system-expat
+#   (Debian) for compatibility with other Debian packages
+# --with-system-ffi
+#   (Debian) for compatibility with other Debian packages
+# --with-system-libmpdec
+#   (Debian) for compatibility with other Debian packages
 # AR=
 #   (Debian) No-op
 # CC=
@@ -83,29 +84,26 @@ cd Python-3.5.3
 #
 # LTO (Link time optimization)
 #
-# There is a --with-lto flag, but Debian doesn't use it.  We used to
-# use it, but it caused trouble with the uWGSI module.  Instead, we
-# pass lto related flags in EXTRA_CFLAGS (to make, rather than
-# configure), as Debian does.
-#
-#
-# Debugging: It is very helpful to view and diff sysconfig data from two
-# python interpreters.  For example:
-#     docker run -it --entrypoint=/opt/python3.5/bin/python3.5 google/python/interpreter-builder -c 'import sysconfig;print("\n".join("%s:%s"%(key,value) for key,value in sorted(sysconfig.get_config_vars().items())))'
+# Currently disabled, due to unresolved compile problems.  There is a
+# --with-lto flag, but Debian doesn't use it.  Instead, they pass lto
+# related flags in EXTRA_CFLAGS (to make, rather than configure).
+# Specifically EXTRA_CFLAGS="-g -flto -fuse-linker-plugin
+# -ffat-lto-objects"
 
 mkdir build-static
 cd build-static
 
 ../configure \
-  --build=x86_64-pc-linux-gnu \
   --enable-ipv6 \
   --enable-loadable-sqlite-extensions \
   --enable-optimizations \
-  --host=x86_64-pc-linux-gnu \
   --prefix=/opt/python3.5 \
   --with-dbmliborder=bdb:gdbm \
   --with-computed-gotos \
   --with-fpectl \
+  --with-system-expat \
+  --with-system-ffi \
+  --with-system-libmpdec \
   AR="x86_64-linux-gnu-gcc-ar" \
   CC="x86_64-linux-gnu-gcc" \
   CFLAGS="\
@@ -121,14 +119,11 @@ cd build-static
   LDFLAGS="-Wl,-z,relro" \
   RANLIB="x86_64-linux-gnu-gcc-ranlib" \
 
-# Explicitly build the profile-guided-optimized interpreter
-NUM_JOBS="$(nproc)"
-make \
-  -j"${NUM_JOBS}" \
-  EXTRA_CFLAGS="-g -flto -fuse-linker-plugin -ffat-lto-objects" \
-  PROFILE_TASK='../Lib/test/regrtest.py -s -j 1 -unone,decimal -x test_cmd_line_script test_compiler test_concurrent_futures test_ctypes test_dbm_dumb test_dbm_ndbm test_distutils test_ensurepip test_gdb test_ioctl test_linuxaudiodev test_multiprocessing test_multiprocessing_fork test_multiprocessing_forkserver test_multiprocessing_main_handling test_multiprocessing_spawn test_ossaudiodev test_pydoc test_signal test_socket test_socketserver test_subprocess test_sundry test_thread test_threaded_import test_threadedtempfile test_threading test_threading_local test_threadsignals test_venv test_zipimport_support' \
-  profile-opt
+# Due to https://bugs.python.org/issue29243, "make altinstall"
+# rebuilds everything from scratch, twice.  This is a workaround.
+sed -i 's/^all:.*$/all: build_all/' Makefile
 
+make profile-opt
 make altinstall
 
 # Clean-up sources

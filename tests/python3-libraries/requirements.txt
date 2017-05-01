@@ -143,7 +143,7 @@ pyramid==1.8.3
 pystache==0.5.4
 pytest-cov==2.4.0
 pytest==3.0.7
-python-cjson==1.2.1
+#python-cjson
 python-daemon==2.1.2
 python-dateutil==2.6.0
 python-gflags==3.1.1
@@ -191,7 +191,7 @@ unidecode==0.4.20
 unittest2==1.1.0
 uritemplate==3.0.0
 urllib3==1.20
-uwsgi==2.0.15
+#uwsgi
 versiontools==1.9.1
 virtualenv==15.1.0
 waitress==1.0.2
