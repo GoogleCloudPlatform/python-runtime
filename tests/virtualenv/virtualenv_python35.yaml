@@ -29,7 +29,7 @@ commandTests:
 
   - name: "python version"
     command: ["python", "--version"]
-    expectedOutput: ["Python 3.5.2\n"]
+    expectedOutput: ["Python 3.5.3\n"]
 
   - name: "pip installation"
     command: ["which", "pip"]
