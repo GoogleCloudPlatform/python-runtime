@@ -1,6 +1,21 @@
 FROM ${FULL_BASE_IMAGE}
 
-RUN hg clone -r 9923b81a1d34 https://hg.python.org/benchmarks /app/benchmarks
-WORKDIR /app/benchmarks
-RUN python perf.py -r -b default /usr/bin/python2.7 /usr/bin/python3.4
-RUN python perf.py -r -b default /usr/bin/python3.4 /opt/python3.5/bin/python3.5
+# Install performance
+RUN pip install performance
+
+# Create virtual environment
+RUN pip install --upgrade virtualenv
+
+# Download ensurepip module which prevents the failure when benchmarking python3, can be removed once we drop debian's 3.4
+RUN wget https://www.python.org/ftp/python/3.4.2/Python-3.4.2.tgz
+RUN tar xzf Python-3.4.2.tgz
+RUN cp -R Python-3.4.2/Lib/ensurepip /usr/lib/python3.4
+
+RUN mkdir /result
+
+# Run the benchmark and compare the performance, add the --debug-single-value flag to let the benchmark run in fastest mode
+RUN pyperformance run --debug-single-value --python=python2.7 -o /result/py2.7.json
+RUN pyperformance run --debug-single-value --python=python3.4 -o /result/py3.4.json
+RUN pyperformance run --debug-single-value --python=python3.5 -o /result/py3.5.json
+RUN pyperformance compare /result/py2.7.json /result/py3.4.json --output_style table
+RUN pyperformance compare /result/py3.4.json /result/py3.5.json --output_style table
