@@ -6,15 +6,15 @@ set -x
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.6.1/Python-3.6.1.tgz
 # SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-d8890b84d773cd7059e597dbefa510340de8336ec9b9e9032bf030f19291565a  Python-3.5.3.tgz
+aa50b0143df7c89ce91be020fe41382613a817354b33acdc6641b44f8ced3828  Python-3.6.1.tgz
 EOF
-tar xzf Python-3.5.3.tgz
+tar xzf Python-3.6.1.tgz
 
 # Build
-cd Python-3.5.3
+cd Python-3.6.1
 
 # Explanation of flags:
 #
@@ -93,7 +93,7 @@ cd build-static
   --enable-ipv6 \
   --enable-loadable-sqlite-extensions \
   --enable-optimizations \
-  --prefix=/opt/python3.5 \
+  --prefix=/opt/python3.6 \
   --with-dbmliborder=bdb:gdbm \
   --with-computed-gotos \
   --with-fpectl \
@@ -124,5 +124,5 @@ make altinstall
 
 # Clean-up sources
 cd /opt
-rm /opt/sources/Python-3.5.3.tgz
-rm -r /opt/sources/Python-3.5.3
+rm /opt/sources/Python-3.6.1.tgz
+rm -r /opt/sources/Python-3.6.1

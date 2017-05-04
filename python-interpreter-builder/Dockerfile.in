@@ -2,19 +2,42 @@
 # installed.
 FROM ${DEBIAN_BASE_IMAGE}
 
-# Install Python build dependencies
+# Install Python build dependencies (based on Debian Build-Depends)
 RUN apt-get update && apt-get install -yq \
-    build-essential \
-    wget \
-    pkg-config \
+    autoconf \
+    blt-dev \
+    bzip2 \
+    debhelper \
+    dpkg-dev \
+    gcc \
+    libbluetooth-dev \
     libbz2-dev \
+    libdb-dev \
+    libexpat1-dev \
+    libffi-dev \
     libgdbm-dev \
+    libgpm2 \
     liblzma-dev \
-    libncurses5-dev \
+    libmpdec-dev \
+    libncursesw5-dev \
     libreadline-dev \
     libsqlite3-dev \
     libssl-dev \
+    locales \
+    lsb-release \
+    mime-support \
+    net-tools \
+    netbase \
+    python3 \
+    quilt \
+    sharutils \
+    time \
+    tk-dev \
+    wget \
+    xauth \
+    xvfb \
     zlib1g-dev
+
 
 # Setup locale. This prevents Python 3 IO encoding issues.
 ENV LANG C.UTF-8
@@ -22,9 +45,10 @@ ENV LANG C.UTF-8
 # Add build scripts
 ADD scripts /scripts
 
-# Build the Python 3.5 interpreter
+# Build the Python interpreters
 RUN /scripts/build-python-3.5.sh
+RUN /scripts/build-python-3.6.sh
 
 # Tar the interpreters. Tarring is needed because docker cp doesn't handle
 # links correctly.
-RUN tar czf /interpreters.tar.gz /opt
+RUN tar czf /interpreters.tar.gz /opt/python?.?
