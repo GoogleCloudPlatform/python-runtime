@@ -34,17 +34,13 @@ cd Python-3.6.1
 # Flags that we _do_ use:
 # (Debian) means it was taken from Debian build rules.
 #
-# --build
-#   (Debian)
 # --enable-ipv6
-#   (Debian)
+#   (Debian) Ensure support is compiled in instead of relying on autodetection
 # --enable-loadable-sqlite-extensions
 #   (Debian)
 # --enable-optimizations
 #   Performance optimization (Enables PGO and may or may not enable
 #   LTO based on complex logic and bugs)
-# --host
-#   (Debian)
 # --prefix
 #   Avoid possible collisions with Debian or others
 # --with-computed-gotos
