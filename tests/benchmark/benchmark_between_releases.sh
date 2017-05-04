@@ -30,5 +30,6 @@ echo "Start benchmarking the python interpreter performance between the two rele
 pyperformance compare release1/py2.7.json release2/py2.7.json --output_style table > py2.7_res
 pyperformance compare release1/py3.4.json release2/py3.4.json --output_style table > py3.4_res
 pyperformance compare release1/py3.5.json release2/py3.5.json --output_style table > py3.5_res
+pyperformance compare release1/py3.6.json release2/py3.6.json --output_style table > py3.6_res
 
 echo "Completed"
