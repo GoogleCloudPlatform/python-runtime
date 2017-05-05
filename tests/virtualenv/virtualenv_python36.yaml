@@ -1,0 +1,48 @@
+schemaVersion: "1.0.0"
+
+globalEnvVars:
+  - key: "VIRTUAL_ENV"
+    value: "/env"
+  - key: "PATH"
+    value: "/env/bin:$PATH"
+
+commandTests:
+  - name: "virtual env teardown"
+    command: ["rm", "-rf", "/env"]
+
+  - name: "python installation"
+    command: ["which", "python3.6"]
+    expectedOutput: ["/opt/python3.6/bin/python3.6\n"]
+
+  - name: "virtualenv python installation"
+    setup: [["virtualenv", "-p", "python3.6", "/env"]]
+    command: ["which", "python"]
+    expectedOutput: ["/env/bin/python\n"]
+
+  - name: "virtualenv python3 installation"
+    command: ["which", "python3"]
+    expectedOutput: ["/env/bin/python3\n"]
+
+  - name: "virtualenv python3.6 installation"
+    command: ["which", "python3.6"]
+    expectedOutput: ["/env/bin/python3.6\n"]
+
+  - name: "python version"
+    command: ["python", "--version"]
+    expectedOutput: ["Python 3.6.3\n"]
+
+  - name: "pip installation"
+    command: ["which", "pip"]
+    expectedOutput: ["/env/bin/pip\n"]
+
+  - name: "pip3 installation"
+    command: ["which", "pip3"]
+    expectedOutput: ["/env/bin/pip3\n"]
+
+  - name: "gunicorn flask"
+    setup: [["pip", "install", "gunicorn", "flask"]]
+    command: ["which", "gunicorn"]
+    expectedOutput: ["/env/bin/gunicorn"]
+
+  - name: "flask integration"
+    command: ["python", "-c", "\"import sys; import flask; sys.exit(0 if flask.__file__.startswith('/env') else 1)\""]

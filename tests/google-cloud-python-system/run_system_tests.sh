@@ -28,7 +28,12 @@ export GOOGLE_CLOUD_TESTS_CREATE_SPANNER_INSTANCE=1
 exit_code=0
 for package in ${packages}; do
   noxfile="${package}/nox.py"
-  nox -f "${noxfile}" -e "system_tests(python_version='2.7')" || exit_code=1
+  nox \
+    -f "${noxfile}" \
+    -e \
+    "system_tests(python_version='2.7')" \
+    "system_tests(python_version='3.6')" \
+    || exit_code=1
 done
 
 exit "${exit_code}"
