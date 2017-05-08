@@ -22,3 +22,4 @@ RUN pyperformance run --debug-single-value --python=python3.6 -o /result/py3.6.j
 RUN pyperformance compare /result/py2.7.json /result/py3.4.json --output_style table
 RUN pyperformance compare /result/py3.4.json /result/py3.5.json --output_style table
 RUN pyperformance compare /result/py3.5.json /result/py3.6.json --output_style table
+
