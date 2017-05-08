@@ -17,9 +17,8 @@ RUN mkdir /result
 RUN pyperformance run --debug-single-value --python=python2.7 -o /result/py2.7.json
 RUN pyperformance run --debug-single-value --python=python3.4 -o /result/py3.4.json
 RUN pyperformance run --debug-single-value --python=python3.5 -o /result/py3.5.json
-RUN pyperformance run --debug-single-value --python=python3.6 -o /result/py3.6.json
+RUN if [ -e "/opt/python3.6/bin/python3.6" ]; then pyperformance run --debug-single-value --python=python3.6 -o /result/py3.6.json; fi
 
 RUN pyperformance compare /result/py2.7.json /result/py3.4.json --output_style table
 RUN pyperformance compare /result/py3.4.json /result/py3.5.json --output_style table
-RUN pyperformance compare /result/py3.5.json /result/py3.6.json --output_style table
-
+RUN if [ -e "/result/py3.6.json" ]; then pyperformance compare /result/py3.5.json /result/py3.6.json --output_style table; fi

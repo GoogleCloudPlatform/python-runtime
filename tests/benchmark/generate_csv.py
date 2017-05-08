@@ -40,16 +40,15 @@ def generate_csv(filename, tag):
                 # Get the function name
                 func_name = benchmark["metadata"]["name"]
                 # Get the time used for this function, convert to millisecond
-                time_used = benchmark["runs"][0]["values"][0] * 1000
+                time_used = float(benchmark["runs"][0]["values"][0]) * 1000
                 # Get the memory usage, convert to MB
-                mem_usage = benchmark["metadata"]["mem_max_rss"] / float(1<<20)
+                mem_usage = float(benchmark["metadata"]["mem_max_rss"]) / float(1<<20)
                 line = [tag, runtime_version, func_name, time_used, mem_usage]
                 # Write to CSV file
                 csv_writer.writerow(line)
             except KeyError:
                 # Skip the benchmark result if it does not contain the fields we want
                 pass
-    output.close()
 
 
 def get_averages(filename, tag):
@@ -67,7 +66,6 @@ def get_averages(filename, tag):
         col_sums = map(sum, zip(*rows_of_data))
         # Calculate the average of the two columns by using the sum divided by the total number of lines
         averages = [col_sum / len(lines) for col_sum in col_sums]
-    input.close()
 
     # Get the runtime version from filename
     runtime_version = os.path.basename(filename).split(".json")[0]
@@ -79,7 +77,6 @@ def get_averages(filename, tag):
             csv_writer.writerow([tag, runtime_version] + averages)
         except IOError:
             print "Could not write averages to file."
-    output.close()
 
 
 def parse_args(argv):
