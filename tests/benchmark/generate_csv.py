@@ -42,11 +42,7 @@ def generate_csv(filename, tag):
                 # Get the time used for this function, convert to millisecond
                 time_used = float(benchmark["runs"][0]["values"][0]) * 1000
                 # Get the memory usage, convert to MB
-<<<<<<< HEAD
                 mem_usage = float(benchmark["metadata"]["mem_max_rss"]) / float(1<<20)
-=======
-                mem_usage = benchmark["metadata"]["mem_max_rss"] / float(1<<20)
->>>>>>> 38dcf3b17c2eb6509002f92ac99f43b665ac5005
                 line = [tag, runtime_version, func_name, time_used, mem_usage]
                 # Write to CSV file
                 csv_writer.writerow(line)
