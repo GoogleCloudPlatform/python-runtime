@@ -13,8 +13,9 @@ d8890b84d773cd7059e597dbefa510340de8336ec9b9e9032bf030f19291565a  Python-3.5.3.t
 EOF
 tar xzf Python-3.5.3.tgz
 
-# Build
+# Apply patches
 cd Python-3.5.3
+QUILT_PATCHES=/patches/3.5 quilt push -a
 
 # Explanation of flags:
 #
@@ -114,10 +115,6 @@ cd build-static
   CXX="x86_64-linux-gnu-g++" \
   LDFLAGS="-Wl,-z,relro" \
   RANLIB="x86_64-linux-gnu-gcc-ranlib" \
-
-# Due to https://bugs.python.org/issue29243, "make altinstall"
-# rebuilds everything from scratch, twice.  This is a workaround.
-sed -i 's/^all:.*$/all: build_all/' Makefile
 
 make profile-opt
 make altinstall
