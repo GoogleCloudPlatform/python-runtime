@@ -121,9 +121,10 @@ make altinstall
 
 # Run tests
 # test___all__: Depends on Debian-specific locale changes
+# test_dbm: https://bugs.python.org/issue28700
 # test_imap: https://bugs.python.org/issue30175
 # test_shutil: https://bugs.python.org/issue29317
-make test TESTOPTS="--exclude test___all__ test_imaplib test_shutil"
+make test TESTOPTS="--exclude test___all__ test_dbm test_imaplib test_shutil"
 
 # Clean-up sources
 cd /opt
