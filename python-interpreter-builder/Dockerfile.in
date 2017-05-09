@@ -44,6 +44,7 @@ ENV LANG C.UTF-8
 
 # Add build scripts
 ADD scripts /scripts
+ADD patches /patches
 
 # Build the Python interpreters
 RUN /scripts/build-python-3.5.sh
