@@ -15,10 +15,6 @@
 import fnmatch
 import os
 
-# Location of our common testing utilities. This isn't published to PyPI.
-GCP_REPO_TOOLS_REQ =\
-    'git+https://github.com/GoogleCloudPlatform/python-repo-tools.git'
-
 
 def _list_files(folder, pattern):
     """Lists all files below the given folder that match the pattern."""
@@ -30,7 +26,7 @@ def _list_files(folder, pattern):
 
 def session_check_requirements(session):
     """Checks for out of date requirements and optionally updates them."""
-    session.install(GCP_REPO_TOOLS_REQ)
+    session.install('gcp-devrel-py-tools')
 
     if 'update' in session.posargs:
         command = 'update-requirements'
@@ -40,4 +36,4 @@ def session_check_requirements(session):
     reqfiles = list(_list_files('.', 'requirements*.txt'))
 
     for reqfile in reqfiles:
-        session.run('gcprepotools', command, reqfile)
+        session.run('gcp-devrel-py-tools', command, reqfile)
