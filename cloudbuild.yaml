@@ -18,6 +18,7 @@ steps:
     '--config', '/workspace/tests/virtualenv/virtualenv_default.yaml',
     '--config', '/workspace/tests/virtualenv/virtualenv_python34.yaml',
     '--config', '/workspace/tests/virtualenv/virtualenv_python35.yaml',
+    '--config', '/workspace/tests/virtualenv/virtualenv_python36.yaml',
     '--config', '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
     '--config', '/workspace/tests/python2-libraries/python2-libraries.yaml',
     '--config', '/workspace/tests/python3-libraries/python3-libraries.yaml',

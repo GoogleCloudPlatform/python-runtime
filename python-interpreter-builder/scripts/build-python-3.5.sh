@@ -87,6 +87,8 @@ QUILT_PATCHES=/patches/3.5 quilt push -a
 # Specifically EXTRA_CFLAGS="-g -flto -fuse-linker-plugin
 # -ffat-lto-objects"
 
+PREFIX=/opt/python3.5
+
 mkdir build-static
 cd build-static
 
@@ -94,7 +96,7 @@ cd build-static
   --enable-ipv6 \
   --enable-loadable-sqlite-extensions \
   --enable-optimizations \
-  --prefix=/opt/python3.5 \
+  --prefix="$PREFIX" \
   --with-dbmliborder=bdb:gdbm \
   --with-computed-gotos \
   --with-fpectl \
@@ -117,13 +119,32 @@ cd build-static
   RANLIB="x86_64-linux-gnu-gcc-ranlib" \
 
 make profile-opt
-make altinstall
 
 # Run tests
 # test___all__: Depends on Debian-specific locale changes
+# test_dbm: https://bugs.python.org/issue28700
 # test_imap: https://bugs.python.org/issue30175
 # test_shutil: https://bugs.python.org/issue29317
-make test TESTOPTS="--exclude test___all__ test_imaplib test_shutil"
+make test TESTOPTS="--exclude test___all__ test_dbm test_imaplib test_shutil"
+
+# Install
+make altinstall
+# We don't expect users to statically link Python into a C/C++ program
+rm "$PREFIX"/lib/libpython3.5m.a \
+  "$PREFIX"/lib/python3.5/config-*/libpython3.5m.a
+# Remove opt-mode bytecode
+find "$PREFIX"/lib/python3.5/ \
+  -name \*.opt-\?.pyc \
+  -exec rm {} \;
+# Remove all but a few files in the 'test' subdirectory
+find "$PREFIX"/lib/python3.5/test \
+  -mindepth 1 -maxdepth 1 \
+  \! -name support \
+  -a \! -name __init__.py \
+  -a \! -name pystone.\* \
+  -a \! -name regrtest.\* \
+  -a \! -name test_support.py \
+  -exec rm -rf {} \;
 
 # Clean-up sources
 cd /opt

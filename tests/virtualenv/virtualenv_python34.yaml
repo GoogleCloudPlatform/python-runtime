@@ -42,3 +42,6 @@ commandTests:
 
   - name: "flask integration"
     command: ["python", "-c", "\"import sys; import flask; sys.exit(0 if flask.__file__.startswith('/env') else 1)\""]
+
+  - name: "test.support"
+    command: ["python", "-c", "\"from test import pystone, regrtest, support\""]

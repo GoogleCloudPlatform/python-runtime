@@ -36,8 +36,8 @@ RUN apt-get update && apt-get install -yq \
     wget \
     xauth \
     xvfb \
-    zlib1g-dev
-
+    zlib1g-dev \
+  && rm -rf /var/lib/apt/lists/*
 
 # Setup locale. This prevents Python 3 IO encoding issues.
 ENV LANG C.UTF-8
