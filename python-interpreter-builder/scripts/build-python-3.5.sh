@@ -129,9 +129,8 @@ make test TESTOPTS="--exclude test___all__ test_dbm test_imaplib test_shutil"
 
 # Install
 make altinstall
-# We don't expect users to statically link Python into a C/C++ program
-rm "$PREFIX"/lib/libpython3.5m.a \
-  "$PREFIX"/lib/python3.5/config-*/libpython3.5m.a
+# Remove redundant copy of libpython
+rm "$PREFIX"/lib/libpython3.5m.a
 # Remove opt-mode bytecode
 find "$PREFIX"/lib/python3.5/ \
   -name \*.opt-\?.pyc \
