@@ -66,7 +66,7 @@ html5lib
 httplib2==0.10.3
 idna==2.5
 ipaddress==1.0.18
-ipython==6.0.0
+#ipython # No longer supports Python 2 as of version 6.0
 iso8601==0.1.11
 isodate==0.5.4
 itsdangerous==0.24
