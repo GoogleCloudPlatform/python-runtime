@@ -180,6 +180,7 @@ unidecode==0.4.20
 unittest2==1.1.0
 uritemplate==3.0.0
 urllib3==1.21.1
+uwsgi==2.0.15
 versiontools==1.9.1
 virtualenv==15.1.0
 waitress==1.0.2
