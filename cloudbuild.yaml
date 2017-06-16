@@ -1,18 +1,18 @@
 timeout: 7200s
 steps:
-- name: gcr.io/cloud-builders/docker:latest
-  # Compile Python interpreters from source
+- # Compile Python interpreters from source
+  name: gcr.io/cloud-builders/docker:latest
   args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}',
          '--no-cache', '/workspace/python-interpreter-builder/']
-- name: ${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}
-  # Copy interpreters back to workspace
+- # Copy interpreters back to workspace
+  name: ${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}
   args: ['cp', '/interpreters.tar.gz', '/workspace/runtime-image/interpreters.tar.gz']
-- name: gcr.io/cloud-builders/docker:latest
-  # Build base runtime image
+- # Build base runtime image
+  name: gcr.io/cloud-builders/docker:latest
   args: ['build', '--tag=${_DOCKER_NAMESPACE}/python:${_TAG}',
          '--no-cache', '/workspace/runtime-image/']
-- name: gcr.io/gcp-runtimes/structure_test:latest
-  # Validate structure of base runtime image
+- # Validate structure of base runtime image
+  name: gcr.io/gcp-runtimes/structure_test:latest
   args: [
     '-i', '${_DOCKER_NAMESPACE}/python:${_TAG}',
     '--config', '/workspace/tests/virtualenv/virtualenv_default.yaml',
@@ -25,11 +25,17 @@ steps:
     '--config', '/workspace/tests/license-test/license-test.yaml',
     '-v'
     ]
-- name: gcr.io/cloud-builders/docker:latest
-  # Run google client library unit tests against base runtime image
+- # Build image to run google client library unit tests
+  name: gcr.io/cloud-builders/docker:latest
   args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}',
          '--no-cache', '/workspace/tests/google-cloud-python/']
-- name: ${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}
+- # Run google client library unit tests
+  name: ${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}
+- # Build runtime builder image
+  name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/builder/gen-dockerfile:${_TAG}',
+         '--no-cache', '/workspace/builder/gen-dockerfile/']
 images: [
-  '${_DOCKER_NAMESPACE}/python:${_TAG}'
+  '${_DOCKER_NAMESPACE}/python:${_TAG}',
+  '${_DOCKER_NAMESPACE}/python/builder/gen-dockerfile:${_TAG}',
 ]
