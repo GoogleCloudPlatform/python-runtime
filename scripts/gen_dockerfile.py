@@ -29,16 +29,14 @@ import yaml
 import validation_utils
 
 
-# Validate characters for dockerfile image names
-# https://github.com/docker/docker/blob/master/api/names.go
+# Validate characters for dockerfile image names.
+#
+# This roots out obvious mistakes, the full gory details are here:
+# https://github.com/docker/distribution/blob/master/reference/regexp.go
 IMAGE_REGEX = re.compile(r"""(?x)
     ^
-    [a-zA-Z0-9]       # First char must be alphanumeric
-    [-a-zA-Z0-9_./]*  # Punctuation allowed after that
-    (
-        :                 # At most one colon allowed
-        [-a-zA-Z0-9_./]+  # Colon must be followed by other chars
-    )?
+    [a-zA-Z0-9]          # First char must be alphanumeric
+    [a-zA-Z0-9-_./:@+]*  # Punctuation allowed after that
     $
 """)
 

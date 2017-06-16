@@ -201,6 +201,7 @@ class GenDockerfileTest(unittest.TestCase):
             [],
             ['argv0', '--base-image=nocolon'],
             ['argv0', '--base-image=name:andcolon'],
+            ['argv0', '--base-image=name@sha256:digest'],
         )
         for argv in valid_cases:
             with self.subTest(valid_argv=argv):
@@ -211,9 +212,9 @@ class GenDockerfileTest(unittest.TestCase):
             raise AssertionError(*args)
 
         invalid_cases = (
+            ['argv0', '--base-image='],
+            ['argv0', '--base-image=:'],
             ['argv0', '--base-image=:noname'],
-            ['argv0', '--base-image=notag:'],
-            ['argv0', '--base-image=bad_:_:_multiple_colons'],
         )
         for argv in invalid_cases:
             with self.subTest(invalid_argv=argv):
