@@ -153,7 +153,7 @@ def get_cloudbuild(raw_config, args):
 
     Args:
         raw_config (dict): deserialized cloudbuild.yaml
-        args (argparse.Namespace): ccommand line flags
+        args (argparse.Namespace): command line flags
 
     Returns:
         CloudBuild: valid configuration

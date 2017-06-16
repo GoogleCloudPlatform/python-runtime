@@ -113,7 +113,7 @@ def get_app_config(raw_config, args):
 
     Args:
         raw_config (dict): deserialized app.yaml
-        args (argparse.Namespace): ccommand line flags
+        args (argparse.Namespace): command line flags
 
     Returns:
         AppConfig: valid configuration
@@ -195,7 +195,7 @@ def gen_dockerfile(args):
     """Write a Dockerfile and helper files for an application.
 
     Args:
-        args (argparse.Namespace): ccommand line flags
+        args (argparse.Namespace): command line flags
     """
     # Read yaml file.  Does not currently support multiple services
     # with configuration filenames besides app.yaml

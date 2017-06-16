@@ -35,7 +35,7 @@ EXPECTED_OUTPUT_FILES = ['Dockerfile', '.dockerignore']
 
 class GenDockerfileTest(unittest.TestCase):
     def setUp(self):
-        self.testdata_dir = os.path.join(os.path.dirname(__file__), 'testdata')  # Sigh
+        self.testdata_dir = os.path.join(os.path.dirname(__file__), 'testdata')
         assert os.path.isdir(self.testdata_dir), 'Could not run test: testdata directory not found'
 
     def compare_file(self, filename, dir1, dir2):

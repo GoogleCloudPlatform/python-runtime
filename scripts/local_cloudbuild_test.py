@@ -37,7 +37,7 @@ STAGING_DIR_REGEX = re.compile(
 class LocalCloudbuildTest(unittest.TestCase):
 
     def setUp(self):
-        self.testdata_dir = os.path.join(os.path.dirname(__file__), 'testdata')  # Sigh
+        self.testdata_dir = os.path.join(os.path.dirname(__file__), 'testdata')
         assert os.path.isdir(self.testdata_dir), 'Could not run test: testdata directory not found'
 
     def test_sub_and_quote(self):
