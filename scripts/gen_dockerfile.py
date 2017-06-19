@@ -129,8 +129,10 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
     entrypoint = validation_utils.get_field_value(raw_config, 'entrypoint', str)
     if not PRINTABLE_REGEX.match(entrypoint):
         raise ValueError('Invalid character in "entrypoint" field of app.yaml')
+
     raw_runtime_config = validation_utils.get_field_value(raw_config, 'runtime_config', dict)
     python_version = validation_utils.get_field_value(raw_runtime_config, 'python_version', str)
+
     dockerfile_python_version = PYTHON_INTERPRETER_VERSION_MAP.get(
         python_version)
     if dockerfile_python_version is None:

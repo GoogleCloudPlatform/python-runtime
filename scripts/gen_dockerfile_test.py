@@ -17,6 +17,7 @@
 """Unit test for gen_dockerfile.py"""
 
 import argparse
+import filecmp
 import os
 import re
 import shutil
@@ -40,13 +41,11 @@ class GenDockerfileTest(unittest.TestCase):
 
     def compare_file(self, filename, dir1, dir2):
         """Compare identically named files in two different directories"""
-        with open(os.path.join(dir1, filename), 'r', encoding='utf8') as file1:
-            with open(os.path.join(dir2, filename), 'r', encoding='utf8') as file2:
-                contents1 = file1.read()
-                contents2 = file2.read()
-                msg = 'Contents of "{}" differ between "{}" and "{}"'.format(
-                    filename, dir1, dir2)
-                self.assertMultiLineEqual(contents1, contents2, msg)
+        if not filecmp.cmp(os.path.join(dir1, filename),
+                           os.path.join(dir2, filename)):
+            msg = 'Contents of "{}" differ between "{}" and "{}"'.format(
+                filename, dir1, dir2)
+            self.assertMultiLineEqual(contents1, contents2, msg)
 
     def test_get_app_config(self):
         config_file = 'some_config_file'
