@@ -2,15 +2,15 @@
 
 # Build the benchmark image for release 1 from Dockerfile
 echo "Building image for release 1"
-export FULL_BASE_IMAGE="${DOCKER_NAMESPACE}/python:${TAG1}"
-envsubst <"Dockerfile".in >"Dockerfile" '$FULL_BASE_IMAGE'
+export STAGING_IMAGE="${DOCKER_NAMESPACE}/python:${TAG1}"
+envsubst <"Dockerfile".in >"Dockerfile" '$STAGING_IMAGE'
 docker build --no-cache -t benchmark_1 .
 rm Dockerfile
 
 # Build the benchmark image for release 2 from Dockerfile
 echo "Building image for release 2"
-export FULL_BASE_IMAGE="${DOCKER_NAMESPACE}/python:${TAG2}"
-envsubst <"Dockerfile".in >"Dockerfile" '$FULL_BASE_IMAGE'
+export STAGING_IMAGE="${DOCKER_NAMESPACE}/python:${TAG2}"
+envsubst <"Dockerfile".in >"Dockerfile" '$STAGING_IMAGE'
 docker build --no-cache -t benchmark_2 .
 rm Dockerfile
 
