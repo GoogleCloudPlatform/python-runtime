@@ -108,12 +108,14 @@ AppConfig = collections.namedtuple(
 )
 
 
-def get_app_config(raw_config, args):
+def get_app_config(raw_config, base_image, config_file, source_dir):
     """Read and validate the application runtime configuration.
 
     Args:
         raw_config (dict): deserialized app.yaml
-        args (argparse.Namespace): command line flags
+        base_image (str): Docker image name to build on top of
+        config_file (str): Path to user's app.yaml (might be <service-name>.yaml)
+        source_dir (str): Directory container user's source code
 
     Returns:
         AppConfig: valid configuration
@@ -122,7 +124,7 @@ def get_app_config(raw_config, args):
     if not isinstance(raw_config, dict):
         raise ValueError(
             'Expected {} contents to be of type "dict", but found type "{}"'.
-            format(args.config, type(raw_config)))
+            format(config_file, type(raw_config)))
 
     entrypoint = validation_utils.get_field_value(raw_config, 'entrypoint', str)
     if not PRINTABLE_REGEX.match(entrypoint):
@@ -139,10 +141,7 @@ def get_app_config(raw_config, args):
 
     # Examine user's files
     has_requirements_txt = os.path.isfile(
-        os.path.join(args.source_dir, 'requirements.txt'))
-
-    # Compute base image name and Dockerfile contents
-    base_image = args.base_image
+        os.path.join(source_dir, 'requirements.txt'))
 
     return AppConfig(
         base_image=base_image,
@@ -191,26 +190,29 @@ def generate_files(app_config):
     }
 
 
-def gen_dockerfile(args):
+def gen_dockerfile(base_image, config_file, source_dir):
     """Write a Dockerfile and helper files for an application.
 
     Args:
-        args (argparse.Namespace): command line flags
+        base_image (str): Docker image name to build on top of
+        config_file (str): Path to user's app.yaml (might be <service-name>.yaml)
+        source_dir (str): Directory container user's source code
     """
     # Read yaml file.  Does not currently support multiple services
     # with configuration filenames besides app.yaml
-    with io.open(args.config, 'r', encoding='utf8') as yaml_config_file:
+    with io.open(config_file, 'r', encoding='utf8') as yaml_config_file:
         raw_config = yaml.load(yaml_config_file)
 
-    # Determine configuration
-    app_config = get_app_config(raw_config, args)
+    # Determine complete configuration
+    app_config = get_app_config(raw_config, base_image, config_file,
+                                source_dir)
 
     # Generate list of filenames and their textual contents
     files = generate_files(app_config)
 
     # Write files
     for filename, contents in files.items():
-        full_filename = os.path.join(args.source_dir, filename)
+        full_filename = os.path.join(source_dir, filename)
         with io.open(full_filename, 'w', encoding='utf8') as outfile:
             outfile.write(contents)
 
@@ -219,18 +221,18 @@ def parse_args(argv):
     """Parse and validate command line flags"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '--base-image',
+        type=functools.partial(
+            validation_utils.validate_arg_regex, flag_regex=IMAGE_REGEX),
+        default='gcr.io/google-appengine/python:latest',
+        help='Name of Docker image to use as base')
+    parser.add_argument(
         '--config',
         type=functools.partial(
             validation_utils.validate_arg_regex, flag_regex=PRINTABLE_REGEX),
         default='app.yaml',
         help='Path to application configuration file'
         )
-    parser.add_argument(
-        '--base-image',
-        type=functools.partial(
-            validation_utils.validate_arg_regex, flag_regex=IMAGE_REGEX),
-        default='gcr.io/google-appengine/python:latest',
-        help='Name of Docker image to use as base')
     parser.add_argument(
         '--source-dir',
         type=functools.partial(
@@ -243,7 +245,7 @@ def parse_args(argv):
 
 def main():
     args = parse_args(sys.argv)
-    gen_dockerfile(args)
+    gen_dockerfile(args.base_image, args.config, args.source_dir)
 
 
 if __name__ == '__main__':

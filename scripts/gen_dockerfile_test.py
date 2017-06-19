@@ -49,10 +49,9 @@ class GenDockerfileTest(unittest.TestCase):
                 self.assertMultiLineEqual(contents1, contents2, msg)
 
     def test_get_app_config(self):
-        args = argparse.Namespace(
-            config='some_config_file',
-            base_image='some_image_name',
-            source_dir='some_source_dir')
+        config_file = 'some_config_file'
+        base_image = 'some_image_name'
+        source_dir = 'some_source_dir'
 
         valid_cases = (
             # Basic app.yaml
@@ -93,7 +92,9 @@ class GenDockerfileTest(unittest.TestCase):
                 raw_app_config = yaml.safe_load(app_yaml)
                 with unittest.mock.patch.object(
                         os.path, 'isfile', return_value=isfile):
-                    actual = gen_dockerfile.get_app_config(raw_app_config, args)
+                    actual = gen_dockerfile.get_app_config(
+                        raw_app_config, base_image, config_file,
+                        source_dir)
                     for key, value in expected.items():
                         self.assertEqual(getattr(actual, key), value)
 
@@ -110,7 +111,9 @@ class GenDockerfileTest(unittest.TestCase):
             with self.subTest(invalid_case=invalid_case):
                 raw_app_config = yaml.safe_load(invalid_case)
                 with self.assertRaises(ValueError):
-                    gen_dockerfile.get_app_config(raw_app_config, args)
+                    gen_dockerfile.get_app_config(
+                        raw_app_config, base_image, config_file,
+                        source_dir)
 
     def test_generate_files(self):
         base = gen_dockerfile.AppConfig(
@@ -165,12 +168,10 @@ class GenDockerfileTest(unittest.TestCase):
                 # Copy sample app to writable temp dir, and generate Dockerfile.
                 config_dir = os.path.join(temp_dir, 'config')
                 shutil.copytree(app_dir, config_dir)
-                args = argparse.Namespace(
-                    config=os.path.join(config_dir, 'app.yaml'),
+                gen_dockerfile.gen_dockerfile(
                     base_image='gcr.io/google-appengine/python',
-                    source_dir=config_dir,
-                )
-                gen_dockerfile.gen_dockerfile(args)
+                    config_file=os.path.join(config_dir, 'app.yaml'),
+                    source_dir=config_dir)
 
                 # Compare against golden files
                 golden_dir = os.path.join(self.testdata_dir, app + '_golden')
