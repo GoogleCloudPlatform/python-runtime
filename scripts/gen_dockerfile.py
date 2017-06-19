@@ -137,9 +137,9 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
         python_version)
     if dockerfile_python_version is None:
         valid_versions = str(sorted(PYTHON_INTERPRETER_VERSION_MAP.keys()))
-        msg = ('Invalid "python_version" field in "runtime_config" section '
-               'of app.yaml.  Valid options are:\n{}').format(valid_versions)
-        raise ValueError(msg)
+        raise ValueError(
+            'Invalid "python_version" field in "runtime_config" section '
+            'of app.yaml.  Valid options are:\n{}'.format(valid_versions))
 
     # Examine user's files
     has_requirements_txt = os.path.isfile(
