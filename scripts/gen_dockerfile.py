@@ -192,7 +192,7 @@ def generate_files(app_config):
     }
 
 
-def gen_dockerfile(base_image, config_file, source_dir):
+def generate_dockerfile_command(base_image, config_file, source_dir):
     """Write a Dockerfile and helper files for an application.
 
     Args:
@@ -247,7 +247,7 @@ def parse_args(argv):
 
 def main():
     args = parse_args(sys.argv)
-    gen_dockerfile(args.base_image, args.config, args.source_dir)
+    generate_dockerfile_command(args.base_image, args.config, args.source_dir)
 
 
 if __name__ == '__main__':

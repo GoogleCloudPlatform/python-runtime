@@ -151,7 +151,7 @@ class GenDockerfileTest(unittest.TestCase):
                 else:
                     self.assertNotIn(test_string, dockerfile)
 
-    def test_gen_dockerfile(self):
+    def test_generate_dockerfile_command(self):
         """Generates output and compares against a set of golden files.
 
         Optionally runs 'gcloud app gen-config' and compares against that.
@@ -167,7 +167,7 @@ class GenDockerfileTest(unittest.TestCase):
                 # Copy sample app to writable temp dir, and generate Dockerfile.
                 config_dir = os.path.join(temp_dir, 'config')
                 shutil.copytree(app_dir, config_dir)
-                gen_dockerfile.gen_dockerfile(
+                gen_dockerfile.generate_dockerfile_command(
                     base_image='gcr.io/google-appengine/python',
                     config_file=os.path.join(config_dir, 'app.yaml'),
                     source_dir=config_dir)
