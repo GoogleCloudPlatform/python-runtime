@@ -1,4 +1,4 @@
-FROM ${FULL_BASE_IMAGE}
+FROM ${STAGING_IMAGE}
 
 # Install performance
 RUN pip install performance

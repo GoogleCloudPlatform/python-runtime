@@ -108,8 +108,8 @@ fi
 
 # Use latest released Debian as our base image
 export DEBIAN_BASE_IMAGE="gcr.io/google-appengine/debian8:latest"
-export FULL_BASE_IMAGE="${DOCKER_NAMESPACE}/python:${TAG}"
-echo "Using base image name ${FULL_BASE_IMAGE}"
+export STAGING_IMAGE="${DOCKER_NAMESPACE}/python:${TAG}"
+echo "Using base image name ${STAGING_IMAGE}"
 
 # Generate Dockerfiles
 for outfile in \
@@ -120,7 +120,7 @@ for outfile in \
   tests/google-cloud-python-system/Dockerfile \
   tests/integration/Dockerfile \
   ; do
-  envsubst <"${outfile}".in >"${outfile}" '$DEBIAN_BASE_IMAGE $FULL_BASE_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS'
+  envsubst <"${outfile}".in >"${outfile}" '$DEBIAN_BASE_IMAGE $STAGING_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS'
 done
 
 # Build images and push to GCR
