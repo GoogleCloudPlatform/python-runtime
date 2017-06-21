@@ -56,50 +56,6 @@ PYTHON_INTERPRETER_VERSION_MAP = {
     '3.6': '3.6',
 }
 
-# File templates.
-# Designed to exactly match the current output of 'gcloud app gen-config'
-DOCKERFILE_TEMPLATE = """\
-FROM {base_image}
-LABEL python_version=python{dockerfile_python_version}
-RUN virtualenv --no-download /env -p python{dockerfile_python_version}
-
-# Set virtualenv environment variables. This is equivalent to running
-# source /env/bin/activate
-ENV VIRTUAL_ENV /env
-ENV PATH /env/bin:$PATH
-{optional_requirements_txt}ADD . /app/
-{optional_entrypoint}"""
-
-DOCKERFILE_REQUIREMENTS_TXT = """\
-ADD requirements.txt /app/
-RUN pip install -r requirements.txt
-"""
-
-DOCKERFILE_ENTRYPOINT_TEMPLATE = """\
-CMD {entrypoint}
-"""
-
-DOCKERIGNORE = """\
-# Copyright 2015 Google Inc. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-.dockerignore
-Dockerfile
-.git
-.hg
-.svn
-"""
 
 # Validated application configuration
 AppConfig = collections.namedtuple(
@@ -130,6 +86,14 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
     if not PRINTABLE_REGEX.match(entrypoint):
         raise ValueError('Invalid character in "entrypoint" field of app.yaml')
 
+    # Mangle entrypoint in the same way as the Cloud SDK
+    # (googlecloudsdk/third_party/appengine/api/validation.py)
+    #
+    # We could handle both string ("shell form") and list ("exec
+    # form") but it appears that gcloud only handles string form.
+    if entrypoint and not entrypoint.startswith('exec '):
+        entrypoint = 'exec ' + entrypoint
+
     raw_runtime_config = validation_utils.get_field_value(raw_config, 'runtime_config', dict)
     python_version = validation_utils.get_field_value(raw_runtime_config, 'python_version', str)
 
@@ -152,6 +116,13 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
         has_requirements_txt=has_requirements_txt)
 
 
+def get_data(name):
+    """Return the contents of the named data resource"""
+    filename = os.path.join(os.path.dirname(__file__), 'data', name)
+    with io.open(filename, 'r', encoding='utf8') as template_file:
+        return template_file.read()
+
+
 def generate_files(app_config):
     """Generate a Dockerfile and helper files for an application.
 
@@ -162,33 +133,28 @@ def generate_files(app_config):
         dict: Map of filename to desired file contents
     """
     if app_config.has_requirements_txt:
-        optional_requirements_txt = DOCKERFILE_REQUIREMENTS_TXT
+        optional_requirements_txt = get_data('Dockerfile.requirements_txt')
     else:
         optional_requirements_txt = ''
 
     if app_config.entrypoint:
-        # Mangle entrypoint in the same way as the Cloud SDK
-        # (googlecloudsdk/third_party/appengine/api/validation.py)
-        #
-        # We could handle both string ("shell form") and list ("exec
-        # form") but it appears that gcloud only handles string form.
-        entrypoint = app_config.entrypoint
-        if entrypoint and not entrypoint.startswith('exec '):
-            entrypoint = 'exec ' + entrypoint
-        optional_entrypoint = DOCKERFILE_ENTRYPOINT_TEMPLATE.format(
-            entrypoint=entrypoint)
+        optional_entrypoint = get_data('Dockerfile.entrypoint.template').format(
+            entrypoint=app_config.entrypoint)
     else:
         optional_entrypoint = ''
 
-    dockerfile = DOCKERFILE_TEMPLATE.format(
-        base_image=app_config.base_image,
-        dockerfile_python_version=app_config.dockerfile_python_version,
-        optional_requirements_txt=optional_requirements_txt,
-        optional_entrypoint=optional_entrypoint)
+    dockerfile = (
+        get_data('Dockerfile.preamble.template').format(
+            base_image=app_config.base_image) +
+        get_data('Dockerfile.virtualenv.template').format(
+            python_version=app_config.dockerfile_python_version) +
+        optional_requirements_txt +
+        get_data('Dockerfile.install_app') +
+        optional_entrypoint)
 
     return {
         'Dockerfile': dockerfile,
-        '.dockerignore': DOCKERIGNORE,
+        '.dockerignore': get_data('dockerignore'),
     }
 
 

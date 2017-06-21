@@ -82,7 +82,7 @@ class GenDockerfileTest(unittest.TestCase):
             }),
             # entrypoint present
             ('entrypoint: my entrypoint', False, {
-                'entrypoint': 'my entrypoint',
+                'entrypoint': 'exec my entrypoint',
             }),
         )
         for valid_case in valid_cases:
@@ -129,7 +129,7 @@ class GenDockerfileTest(unittest.TestCase):
             # Entrypoint
             (base, False, 'CMD'),
             (base._replace(entrypoint='my entrypoint'), True,
-             'CMD exec my entrypoint'),
+             'CMD my entrypoint'),
             (base._replace(entrypoint='exec my entrypoint'), True,
              'CMD exec my entrypoint'),
             # Base runtime image

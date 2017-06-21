@@ -128,6 +128,7 @@ done
 for file in \
   gen_dockerfile.py \
   validation_utils.py \
+  'data/*' \
   ; do
   cp -a "scripts/${file}" "builder/gen-dockerfile/${file}"
 done
