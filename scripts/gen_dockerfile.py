@@ -68,23 +68,23 @@ AppConfig = collections.namedtuple(
 def get_app_config(raw_config, base_image, config_file, source_dir):
     """Read and validate the application runtime configuration.
 
-    Args:
-        raw_config (dict): deserialized app.yaml
-        base_image (str): Docker image name to build on top of
-        config_file (str): Path to user's app.yaml (might be <service-name>.yaml)
-        source_dir (str): Directory container user's source code
-
     We validate the user input for security and better error messages.
 
-    Yaml parsing rules can lead to extremely unhelpful error messages.
-    For example, parsing a string value where we expected a list.
-    Python will happily use the string as a sequence of individual
-    characters, leading to confusing results.
+    Consider, parsing a yaml file which has a string value where we
+    expected a list.  Python will happily use the string as a sequence
+    of individual characters, at least for a while, leading to
+    confusing results when it finally fails.
 
     We also try to prevent Dockerfile and Bash injection attacks.  For
     example, specifying entrypoint as "true\\nADD /etc/passwd /pwned"
     would allow the user to inject arbitrary directives into the
     Dockerfile, which is a support problem if nothing else.
+
+    Args:
+        raw_config (dict): deserialized app.yaml
+        base_image (str): Docker image name to build on top of
+        config_file (str): Path to user's app.yaml (might be <service-name>.yaml)
+        source_dir (str): Directory container user's source code
 
     Returns:
         AppConfig: valid configuration
@@ -132,12 +132,12 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
 def get_data(name):
     """Return the contents of the named data resource
 
-    Args:
-        name (str): Name of file, without directory
-
     These templates are copied from the Google Cloud SDK at
     google-cloud-sdk/platform/ext-runtime/python/data
     and the two should be kept in sync.
+
+    Args:
+        name (str): Name of file, without directory
 
     Returns:
         str: Contents of data file

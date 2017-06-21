@@ -29,8 +29,17 @@ def get_field_value(container, field_name, field_type):
     """Fetch a field from a container with typechecking and default values.
 
     The field value is coerced to the desired type.  If the field is
-    not present, a instance of `field_type` is constructed with no
+    not present, an instance of `field_type` is constructed with no
     arguments and used as the default value.
+
+    This function exists because yaml parsing can lead to surprising
+    outputs, and the resulting errors are confusing.  For example:
+        entrypoint1: a string, but I can accidentally treat as an sequence
+        entrypoint2: [a, list, but, I, might, think, its, a, string]
+        version1: 3     # Parsed to int
+        version2: 3.1   # Parsed to float
+        version3: 3.1.1 # Parsed to str
+        feature: off    # Parsed to the boolean False
 
     Args:
         container (dict): Object decoded from yaml
