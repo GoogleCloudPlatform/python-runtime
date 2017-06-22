@@ -97,7 +97,8 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
 
     entrypoint = validation_utils.get_field_value(raw_config, 'entrypoint', str)
     if not PRINTABLE_REGEX.match(entrypoint):
-        raise ValueError('Invalid character in "entrypoint" field of app.yaml')
+        raise ValueError(
+            'Invalid "entrypoint" value in app.yaml: {!r}'.format(entrypoint))
 
     # Mangle entrypoint in the same way as the Cloud SDK
     # (googlecloudsdk/third_party/appengine/api/validation.py)
@@ -116,7 +117,8 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
         valid_versions = str(sorted(PYTHON_INTERPRETER_VERSION_MAP.keys()))
         raise ValueError(
             'Invalid "python_version" field in "runtime_config" section '
-            'of app.yaml.  Valid options are:\n{}'.format(valid_versions))
+            'of app.yaml: {!r}.  Valid options are: {}'.
+            format(python_version, valid_versions))
 
     # Examine user's files
     has_requirements_txt = os.path.isfile(
@@ -167,14 +169,15 @@ def generate_files(app_config):
     else:
         optional_entrypoint = ''
 
-    dockerfile = (
+    dockerfile = ''.join([
         get_data('Dockerfile.preamble.template').format(
-            base_image=app_config.base_image) +
+            base_image=app_config.base_image),
         get_data('Dockerfile.virtualenv.template').format(
-            python_version=app_config.dockerfile_python_version) +
-        optional_requirements_txt +
-        get_data('Dockerfile.install_app') +
-        optional_entrypoint)
+            python_version=app_config.dockerfile_python_version),
+        optional_requirements_txt,
+        get_data('Dockerfile.install_app'),
+        optional_entrypoint ,
+                         ])
 
     return {
         'Dockerfile': dockerfile,
@@ -193,7 +196,7 @@ def generate_dockerfile_command(base_image, config_file, source_dir):
     # Read yaml file.  Does not currently support multiple services
     # with configuration filenames besides app.yaml
     with io.open(config_file, 'r', encoding='utf8') as yaml_config_file:
-        raw_config = yaml.load(yaml_config_file)
+        raw_config = yaml.safe_load(yaml_config_file)
 
     # Determine complete configuration
     app_config = get_app_config(raw_config, base_image, config_file,
