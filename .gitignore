@@ -1,4 +1,6 @@
 *.pyc
+.cache
+.coverage
 .nox
 /cloudbuild.yaml_local.sh
 /cloudbuild_benchmark.yaml_local.sh
