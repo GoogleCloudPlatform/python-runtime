@@ -1,0 +1,4 @@
+flask
+pytest
+pytest-cov
+pyyaml
