@@ -101,7 +101,7 @@ def validate_arg_dict(flag_value):
         match = re.match(KEY_VALUE_REGEX, entry)
         if not match:
             raise argparse.ArgumentTypeError(
-                'Value "{}" should be a list like _KEY1=value1,_KEY2=value2"'.format(
-                    flag_value))
+                'Value "{}" should be a list like _KEY1=value1,_KEY2=value2"'.
+                format(flag_value))
         pairs.append((match.group(1), match.group(2)))
     return dict(pairs)
