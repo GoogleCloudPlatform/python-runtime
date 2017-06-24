@@ -1,4 +1,4 @@
-FROM ${FULL_BASE_IMAGE}
+FROM ${STAGING_IMAGE}
 LABEL python_version=python3.5
 RUN virtualenv --no-download /env -p python3.5
 
