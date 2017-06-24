@@ -83,7 +83,7 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
     Args:
         raw_config (dict): deserialized app.yaml
         base_image (str): Docker image name to build on top of
-        config_file (str): Path to user's app.yaml (might be <service-name>.yaml)
+        config_file (str): Path to user's app.yaml (might be <service>.yaml)
         source_dir (str): Directory container user's source code
 
     Returns:
@@ -95,7 +95,8 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
             'Expected {} contents to be a Mapping type, but found type "{}"'.
             format(config_file, type(raw_config)))
 
-    entrypoint = validation_utils.get_field_value(raw_config, 'entrypoint', str)
+    entrypoint = validation_utils.get_field_value(
+        raw_config, 'entrypoint', str)
     if not PRINTABLE_REGEX.match(entrypoint):
         raise ValueError(
             'Invalid "entrypoint" value in app.yaml: {!r}'.format(entrypoint))
@@ -108,8 +109,10 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
     if entrypoint and not entrypoint.startswith('exec '):
         entrypoint = 'exec ' + entrypoint
 
-    raw_runtime_config = validation_utils.get_field_value(raw_config, 'runtime_config', dict)
-    python_version = validation_utils.get_field_value(raw_runtime_config, 'python_version', str)
+    raw_runtime_config = validation_utils.get_field_value(
+        raw_config, 'runtime_config', dict)
+    python_version = validation_utils.get_field_value(
+        raw_runtime_config, 'python_version', str)
 
     dockerfile_python_version = PYTHON_INTERPRETER_VERSION_MAP.get(
         python_version)
@@ -164,8 +167,9 @@ def generate_files(app_config):
         optional_requirements_txt = ''
 
     if app_config.entrypoint:
-        optional_entrypoint = get_data('Dockerfile.entrypoint.template').format(
-            entrypoint=app_config.entrypoint)
+        optional_entrypoint = get_data(
+            'Dockerfile.entrypoint.template').format(
+                entrypoint=app_config.entrypoint)
     else:
         optional_entrypoint = ''
 
@@ -176,8 +180,8 @@ def generate_files(app_config):
             python_version=app_config.dockerfile_python_version),
         optional_requirements_txt,
         get_data('Dockerfile.install_app'),
-        optional_entrypoint ,
-                         ])
+        optional_entrypoint,
+    ])
 
     return {
         'Dockerfile': dockerfile,
@@ -190,7 +194,7 @@ def generate_dockerfile_command(base_image, config_file, source_dir):
 
     Args:
         base_image (str): Docker image name to build on top of
-        config_file (str): Path to user's app.yaml (might be <service-name>.yaml)
+        config_file (str): Path to user's app.yaml (might be <service>.yaml)
         source_dir (str): Directory container user's source code
     """
     # Read yaml file.  Does not currently support multiple services
