@@ -17,7 +17,6 @@ import os
 
 import nox
 
-
 def _list_files(folder, pattern):
     """Lists all files below the given folder that match the pattern."""
     for root, folders, files in os.walk(folder):
@@ -44,10 +43,13 @@ def check_requirements(session):
 
 @nox.session
 def lint(session):
+    session.interpreter = 'python3'
     session.install('flake8', 'flake8-import-order')
     session.run(
         'flake8',
         '--import-order-style=google',
+        ('--application-import-names='
+         'gen_dockerfile,local_cloudbuild,validation_utils'),
         'scripts',
         'nox.py',
     )
@@ -64,9 +66,9 @@ def tests(session, version):
         '--cov=scripts',
         '--cov-append',
         '--cov-config=.coveragerc',
-        '--cov-report=',  # Report generated below
+        '--cov-report=', # Report generated below
         'scripts',
-        env={'PYTHONPATH': ''}
+        env={'PYTHONPATH':''}
     )
 
 
