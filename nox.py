@@ -15,6 +15,8 @@
 import fnmatch
 import os
 
+import nox
+
 
 def _list_files(folder, pattern):
     """Lists all files below the given folder that match the pattern."""
@@ -24,7 +26,8 @@ def _list_files(folder, pattern):
                 yield os.path.join(root, filename)
 
 
-def session_check_requirements(session):
+@nox.session
+def check_requirements(session):
     """Checks for out of date requirements and optionally updates them."""
     session.install('gcp-devrel-py-tools')
 
@@ -37,3 +40,44 @@ def session_check_requirements(session):
 
     for reqfile in reqfiles:
         session.run('gcp-devrel-py-tools', command, reqfile)
+
+
+@nox.session
+def lint(session):
+    session.install('flake8', 'flake8-import-order')
+    session.run(
+        'flake8',
+        '--import-order-style=google',
+        'scripts',
+        'nox.py',
+    )
+
+
+@nox.session
+@nox.parametrize('version', ['3.4', '3.5', '3.6'])
+def tests(session, version):
+    session.interpreter = 'python' + version
+    session.install('-r', 'scripts/requirements-test.txt')
+    session.run(
+        'py.test',
+        '--ignore=scripts/testdata',
+        '--cov=scripts',
+        '--cov-append',
+        '--cov-config=.coveragerc',
+        '--cov-report=',  # Report generated below
+        'scripts',
+        env={'PYTHONPATH': ''}
+    )
+
+
+@nox.session
+def cover(session):
+    """Run the final coverage report.
+
+    This outputs the coverage report aggregating coverage from the unit
+    test runs (not system test runs), and then erases coverage data.
+    """
+    session.interpreter = 'python3.6'
+    session.install('coverage', 'pytest-cov')
+    session.run('coverage', 'report', '--show-missing', '--fail-under=97')
+    session.run('coverage', 'erase')
