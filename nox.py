@@ -17,6 +17,7 @@ import os
 
 import nox
 
+
 def _list_files(folder, pattern):
     """Lists all files below the given folder that match the pattern."""
     for root, folders, files in os.walk(folder):
@@ -66,9 +67,9 @@ def tests(session, version):
         '--cov=scripts',
         '--cov-append',
         '--cov-config=.coveragerc',
-        '--cov-report=', # Report generated below
+        '--cov-report=',  # Report generated below
         'scripts',
-        env={'PYTHONPATH':''}
+        env={'PYTHONPATH': ''}
     )
 
 
