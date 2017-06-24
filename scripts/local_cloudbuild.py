@@ -322,6 +322,7 @@ def local_cloudbuild(args):
 
     # Run shell script
     if cloudbuild.run:
+        print('Running {}'.format(cloudbuild.output_script))
         args = [os.path.abspath(cloudbuild.output_script)]
         subprocess.check_call(args)
 
