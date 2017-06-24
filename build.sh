@@ -125,12 +125,13 @@ for outfile in \
 done
 
 # Make some files available to the runtime builder Docker context
+mkdir -p builder/gen-dockerfile/data
 for file in \
-  gen_dockerfile.py \
-  validation_utils.py \
-  'data/*' \
+  scripts/gen_dockerfile.py \
+  scripts/validation_utils.py \
+  scripts/data/* \
   ; do
-  cp -a "scripts/${file}" "builder/gen-dockerfile/${file}"
+  cp -a "${file}" "builder/gen-dockerfile/${file##scripts/}"
 done
 
 # Build images and push to GCR
