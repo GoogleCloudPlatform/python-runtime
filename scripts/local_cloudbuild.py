@@ -73,7 +73,7 @@ DEFAULT_SUBSTITUTIONS = {
 }
 
 # Use this image for cleanup actions
-DEBIAN_IMAGE='gcr.io/google-appengine/debian8'
+DEBIAN_IMAGE = 'gcr.io/google-appengine/debian8'
 
 # File template
 BUILD_SCRIPT_TEMPLATE = """\
@@ -90,7 +90,7 @@ function cleanup {{
     if [ "${{HOST_WORKSPACE}}" != '/' -a -d "${{HOST_WORKSPACE}}" ]; then
         # Expect a single error message about /workspace busy
         {cleanup_str} 2>/dev/null || true
-        # Do not expect error messages here.  Display but ignore any that happen.
+        # Do not expect error messages here.  Display but ignore.
         rmdir "${{HOST_WORKSPACE}}" || true
     fi
 }}
@@ -108,7 +108,8 @@ echo "Build completed successfully"
 
 
 # Validated cloudbuild recipe + flags
-CloudBuild = collections.namedtuple('CloudBuild', 'output_script run steps substitutions')
+CloudBuild = collections.namedtuple('CloudBuild',
+                                    'output_script run steps substitutions')
 
 # Single validated step in a cloudbuild recipe
 Step = collections.namedtuple('Step', 'args dir_ env name')
@@ -136,8 +137,7 @@ def sub_and_quote(s, substitutions, substitutions_used):
             # Variables must be set
             raise ValueError(
                 'Variable "{}" used without being defined.  Try adding '
-                'it to the --substitutions flag'.format(
-                    variable_name))
+                'it to the --substitutions flag'.format(variable_name))
         else:
             value = substitutions.get(variable_name)
         substitutions_used.add(variable_name)
@@ -272,8 +272,9 @@ def generate_script(cloudbuild):
     if user_subs_unused:
         nice_list = '"' + '", "'.join(sorted(user_subs_unused)) + '"'
         raise ValueError(
-            'User substitution variables {} were defined in the --substitution '
-            'flag but never used in the cloudbuild file.'.format(nice_list))
+            'User substitution variables {} were defined in the '
+            '--substitution flag but never used in the cloudbuild file.'.
+            format(nice_list))
 
     cleanup_str = ' '.join(cleanup_command)
     docker_lines = []
@@ -298,7 +299,7 @@ def make_executable(path):
 def write_script(cloudbuild, contents):
     """Write a shell script to a file."""
     print('Writing build script to {}'.format(cloudbuild.output_script))
-    with open(cloudbuild.output_script, 'w', encoding='utf8') as outfile:
+    with io.open(cloudbuild.output_script, 'w', encoding='utf8') as outfile:
         outfile.write(contents)
     make_executable(cloudbuild.output_script)
 
@@ -310,7 +311,7 @@ def local_cloudbuild(args):
         args: command line flags as per parse_args
     """
     # Load and parse cloudbuild.yaml
-    with open(args.config, 'r', encoding='utf8') as cloudbuild_file:
+    with io.open(args.config, 'r', encoding='utf8') as cloudbuild_file:
         raw_config = yaml.safe_load(cloudbuild_file)
 
     # Determine configuration
