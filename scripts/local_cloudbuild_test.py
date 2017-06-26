@@ -404,3 +404,7 @@ def test_parse_args_output_script(argv, expected):
 def test_parse_args_run_flag(argv, expected):
     args = local_cloudbuild.parse_args(argv)
     assert args.run == expected
+
+
+if __name__ == '__main__':
+    pytest.main([__file__])

@@ -92,3 +92,7 @@ def test_validate_arg_dicts_valid(arg, expected):
 def test_validate_arg_dicts_invalid(arg):
     with pytest.raises(argparse.ArgumentTypeError):
         validation_utils.validate_arg_dict(arg)
+
+
+if __name__ == '__main__':
+    pytest.main([__file__])
