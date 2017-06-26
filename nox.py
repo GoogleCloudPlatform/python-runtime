@@ -44,13 +44,13 @@ def check_requirements(session):
 
 @nox.session
 def lint(session):
-    session.interpreter = 'python3'
+    session.interpreter = 'python3'  # So it understands Python3 syntax
     session.install('flake8', 'flake8-import-order')
     session.run(
         'flake8',
         '--import-order-style=google',
-        ('--application-import-names='
-         'gen_dockerfile,local_cloudbuild,validation_utils'),
+        '--application-import-names',
+        'gen_dockerfile,local_cloudbuild,validation_utils',
         'scripts',
         'nox.py',
     )
