@@ -47,50 +47,55 @@ def compare_file(filename, dir1, dir2):
         os.path.join(dir1, filename), os.path.join(dir2, filename))
 
 
-@pytest.mark.parametrize('app_yaml, isfile, expected', [
+@pytest.mark.parametrize('app_yaml, expected', [
     # Basic app.yaml
-    ('env: flex', False, {
+    ('env: flex', {
         'base_image': 'some_image_name',
         'dockerfile_python_version': '',
         'has_requirements_txt': False,
         'entrypoint': '',
     }),
     # All supported python versions
-    ('runtime_config:\n python_version:', False, {
+    ('runtime_config:\n python_version:', {
         'dockerfile_python_version': '',
     }),
-    ('runtime_config:\n python_version: 2', False, {
+    ('runtime_config:\n python_version: 2', {
         'dockerfile_python_version': '',
     }),
-    ('runtime_config:\n python_version: 3', False, {
+    ('runtime_config:\n python_version: 3', {
         'dockerfile_python_version': '3.5',
     }),
-    ('runtime_config:\n python_version: 3.4', False, {
+    ('runtime_config:\n python_version: 3.4', {
         'dockerfile_python_version': '3.4',
     }),
-    ('runtime_config:\n python_version: 3.5', False, {
+    ('runtime_config:\n python_version: 3.5', {
         'dockerfile_python_version': '3.5',
     }),
-    # requirements.txt present
-    ('env: flex', True, {
-        'has_requirements_txt': True,
-    }),
     # entrypoint present
-    ('entrypoint: my entrypoint', False, {
+    ('entrypoint: my entrypoint', {
         'entrypoint': 'exec my entrypoint',
     }),
 ])
-def test_get_app_config_valid(app_yaml, isfile, expected):
+def test_get_app_config_valid(app_yaml, expected):
     config_file = 'some_config_file'
     base_image = 'some_image_name'
     source_dir = 'some_source_dir'
     raw_app_config = yaml.safe_load(app_yaml)
-    with unittest.mock.patch.object(os.path, 'isfile', return_value=isfile):
-        actual = gen_dockerfile.get_app_config(
-            raw_app_config, base_image, config_file,
-            source_dir)
-        for key, value in expected.items():
-            assert getattr(actual, key) == value
+    actual = gen_dockerfile.get_app_config(
+        raw_app_config, base_image, config_file,
+        source_dir)
+    for key, value in expected.items():
+        assert getattr(actual, key) == value
+
+
+def test_get_app_config_requirements_txt():
+    """requirements.txt file present"""
+    app_yaml = 'env: flex'
+    expected = {
+        'has_requirements_txt': True,
+    }
+    with unittest.mock.patch.object(os.path, 'isfile', return_value=True):
+        test_get_app_config_valid(app_yaml, expected)
 
 
 @pytest.mark.parametrize('app_yaml', [
