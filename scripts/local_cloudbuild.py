@@ -42,6 +42,8 @@ import sys
 
 import yaml
 
+import validation_utils
+
 
 # Exclude non-printable control characters (including newlines)
 PRINTABLE_REGEX = re.compile(r"""^[^\x00-\x1f]*$""")
@@ -59,10 +61,6 @@ SUBSTITUTION_REGEX = re.compile(r"""(?x)
     )
 """)
 
-# For easier development, we allow redefining builtins like
-# --substitutions=PROJECT_ID=foo even though gcloud doesn't.
-KEY_VALUE_REGEX = re.compile(r'^([A-Z_][A-Z0-9_]*)=(.*)$')
-
 # Default builtin substitutions
 DEFAULT_SUBSTITUTIONS = {
     'BRANCH_NAME': '',
@@ -75,7 +73,7 @@ DEFAULT_SUBSTITUTIONS = {
 }
 
 # Use this image for cleanup actions
-DEBIAN_IMAGE='gcr.io/google-appengine/debian8'
+DEBIAN_IMAGE = 'gcr.io/google-appengine/debian8'
 
 # File template
 BUILD_SCRIPT_TEMPLATE = """\
@@ -92,7 +90,7 @@ function cleanup {{
     if [ "${{HOST_WORKSPACE}}" != '/' -a -d "${{HOST_WORKSPACE}}" ]; then
         # Expect a single error message about /workspace busy
         {cleanup_str} 2>/dev/null || true
-        # Do not expect error messages here.  Display but ignore any that happen.
+        # Do not expect error messages here.  Display but ignore.
         rmdir "${{HOST_WORKSPACE}}" || true
     fi
 }}
@@ -110,7 +108,8 @@ echo "Build completed successfully"
 
 
 # Validated cloudbuild recipe + flags
-CloudBuild = collections.namedtuple('CloudBuild', 'output_script run steps substitutions')
+CloudBuild = collections.namedtuple('CloudBuild',
+                                    'output_script run steps substitutions')
 
 # Single validated step in a cloudbuild recipe
 Step = collections.namedtuple('Step', 'args dir_ env name')
@@ -138,8 +137,7 @@ def sub_and_quote(s, substitutions, substitutions_used):
             # Variables must be set
             raise ValueError(
                 'Variable "{}" used without being defined.  Try adding '
-                'it to the --substitutions flag'.format(
-                    variable_name))
+                'it to the --substitutions flag'.format(variable_name))
         else:
             value = substitutions.get(variable_name)
         substitutions_used.add(variable_name)
@@ -149,58 +147,13 @@ def sub_and_quote(s, substitutions, substitutions_used):
     quoted_s = shlex.quote(substituted_s)
     return quoted_s
 
-def get_field_value(container, field_name, field_type):
-    """Fetch a field from a container with typechecking and default values.
-
-    The field value is coerced to the desired type.  If the field is
-    not present, a instance of `field_type` is constructed with no
-    arguments and used as the default value.
-
-    Args:
-        container (dict): Object decoded from yaml
-        field_name (str): Field that should be present in `container`
-        field_type (type): Expected type for field value
-
-    Returns:
-        Any: Fetched or default value of field
-
-    Raises:
-        ValueError: if field value cannot be converted to the desired type
-    """
-    try:
-        value = container[field_name]
-    except (IndexError, KeyError):
-        return field_type()
-
-    msg = 'Expected "{}" field to be of type "{}", but found type "{}"'
-    if not isinstance(value, field_type):
-        # list('some string') is a successful type cast as far as Python
-        # is concerned, but doesn't exactly produce the results we want.
-        # We have a whitelist of conversions we will attempt.
-        whitelist = (
-            (float, str),
-            (int, str),
-            (str, float),
-            (str, int),
-            (int, float),
-            )
-        if (type(value), field_type) not in whitelist:
-            raise ValueError(msg.format(field_name, field_type, type(value)))
-
-    try:
-        value = field_type(value)
-    except ValueError as e:
-        e.message = msg.format(field_name, field_type, type(value))
-        raise
-    return value
-
 
 def get_cloudbuild(raw_config, args):
     """Read and validate a cloudbuild recipe
 
     Args:
         raw_config (dict): deserialized cloudbuild.yaml
-        args (argparse.Namespace): ccommand line flags
+        args (argparse.Namespace): command line flags
 
     Returns:
         CloudBuild: valid configuration
@@ -210,7 +163,7 @@ def get_cloudbuild(raw_config, args):
             'Expected {} contents to be of type "dict", but found type "{}"'.
             format(args.config, type(raw_config)))
 
-    raw_steps = get_field_value(raw_config, 'steps', list)
+    raw_steps = validation_utils.get_field_value(raw_config, 'steps', list)
     if not raw_steps:
         raise ValueError('No steps defined in {}'.format(args.config))
 
@@ -236,14 +189,14 @@ def get_step(raw_step):
         raise ValueError(
             'Expected step to be of type "dict", but found type "{}"'.
             format(type(raw_step)))
-    raw_args = get_field_value(raw_step, 'args', list)
-    args = [get_field_value(raw_args, index, str)
+    raw_args = validation_utils.get_field_value(raw_step, 'args', list)
+    args = [validation_utils.get_field_value(raw_args, index, str)
             for index in range(len(raw_args))]
-    dir_ = get_field_value(raw_step, 'dir', str)
-    raw_env = get_field_value(raw_step, 'env', list)
-    env = [get_field_value(raw_env, index, str)
+    dir_ = validation_utils.get_field_value(raw_step, 'dir', str)
+    raw_env = validation_utils.get_field_value(raw_step, 'env', list)
+    env = [validation_utils.get_field_value(raw_env, index, str)
            for index in range(len(raw_env))]
-    name = get_field_value(raw_step, 'name', str)
+    name = validation_utils.get_field_value(raw_step, 'name', str)
     return Step(
         args=args,
         dir_=dir_,
@@ -319,8 +272,9 @@ def generate_script(cloudbuild):
     if user_subs_unused:
         nice_list = '"' + '", "'.join(sorted(user_subs_unused)) + '"'
         raise ValueError(
-            'User substitution variables {} were defined in the --substitution '
-            'flag but never used in the cloudbuild file.'.format(nice_list))
+            'User substitution variables {} were defined in the '
+            '--substitution flag but never used in the cloudbuild file.'.
+            format(nice_list))
 
     cleanup_str = ' '.join(cleanup_command)
     docker_lines = []
@@ -345,7 +299,7 @@ def make_executable(path):
 def write_script(cloudbuild, contents):
     """Write a shell script to a file."""
     print('Writing build script to {}'.format(cloudbuild.output_script))
-    with open(cloudbuild.output_script, 'w', encoding='utf8') as outfile:
+    with io.open(cloudbuild.output_script, 'w', encoding='utf8') as outfile:
         outfile.write(contents)
     make_executable(cloudbuild.output_script)
 
@@ -357,7 +311,7 @@ def local_cloudbuild(args):
         args: command line flags as per parse_args
     """
     # Load and parse cloudbuild.yaml
-    with open(args.config, 'r', encoding='utf8') as cloudbuild_file:
+    with io.open(args.config, 'r', encoding='utf8') as cloudbuild_file:
         raw_config = yaml.safe_load(cloudbuild_file)
 
     # Determine configuration
@@ -369,33 +323,9 @@ def local_cloudbuild(args):
 
     # Run shell script
     if cloudbuild.run:
+        print('Running {}'.format(cloudbuild.output_script))
         args = [os.path.abspath(cloudbuild.output_script)]
         subprocess.check_call(args)
-
-
-def validate_arg_regex(flag_value, flag_regex):
-    """Check a named command line flag against a regular expression"""
-    if not re.match(flag_regex, flag_value):
-        raise argparse.ArgumentTypeError(
-            'Value "{}" does not match pattern "{}"'.format(
-                flag_value, flag_regex.pattern))
-    return flag_value
-
-
-def validate_arg_dict(flag_value):
-    """Parse a command line flag as a key=val,... dict"""
-    if not flag_value:
-        return {}
-    entries = flag_value.split(',')
-    pairs = []
-    for entry in entries:
-        match = re.match(KEY_VALUE_REGEX, entry)
-        if not match:
-            raise argparse.ArgumentTypeError(
-                'Value "{}" should be a list like _KEY1=value1,_KEY2=value2"'.format(
-                    flag_value))
-        pairs.append((match.group(1), match.group(2)))
-    return dict(pairs)
 
 
 def parse_args(argv):
@@ -405,14 +335,14 @@ def parse_args(argv):
     parser.add_argument(
         '--config',
         type=functools.partial(
-            validate_arg_regex, flag_regex=PRINTABLE_REGEX),
+            validation_utils.validate_arg_regex, flag_regex=PRINTABLE_REGEX),
         default='cloudbuild.yaml',
         help='Path to cloudbuild.yaml file'
     )
     parser.add_argument(
         '--output_script',
         type=functools.partial(
-            validate_arg_regex, flag_regex=PRINTABLE_REGEX),
+            validation_utils.validate_arg_regex, flag_regex=PRINTABLE_REGEX),
         help='Filename to write shell script to',
     )
     parser.add_argument(
@@ -423,7 +353,7 @@ def parse_args(argv):
     )
     parser.add_argument(
         '--substitutions',
-        type=validate_arg_dict,
+        type=validation_utils.validate_arg_dict,
         default={},
         help='Parameters to be substituted in the build specification',
     )

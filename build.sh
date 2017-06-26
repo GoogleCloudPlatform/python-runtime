@@ -113,6 +113,7 @@ echo "Using base image name ${STAGING_IMAGE}"
 
 # Generate Dockerfiles
 for outfile in \
+  builder/gen-dockerfile/Dockerfile \
   python-interpreter-builder/Dockerfile \
   runtime-image/Dockerfile \
   tests/benchmark/Dockerfile \
@@ -121,6 +122,16 @@ for outfile in \
   tests/integration/Dockerfile \
   ; do
   envsubst <"${outfile}".in >"${outfile}" '$DEBIAN_BASE_IMAGE $STAGING_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS'
+done
+
+# Make some files available to the runtime builder Docker context
+mkdir -p builder/gen-dockerfile/data
+for file in \
+  scripts/gen_dockerfile.py \
+  scripts/validation_utils.py \
+  scripts/data/* \
+  ; do
+  cp -a "${file}" "builder/gen-dockerfile/${file##scripts/}"
 done
 
 # Build images and push to GCR

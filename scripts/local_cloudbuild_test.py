@@ -17,14 +17,14 @@
 """Unit test for local_cloudbuild.py"""
 
 import argparse
+import contextlib
 import os
 import re
 import shutil
 import subprocess
-import tempfile
-import unittest
 import unittest.mock
 
+import pytest
 import yaml
 
 import local_cloudbuild
@@ -34,436 +34,373 @@ import local_cloudbuild
 STAGING_DIR_REGEX = re.compile(
     b'(?m)Copying source to staging directory (.+)$')
 
-class ValidationUtilsTest(unittest.TestCase):
 
-    def test_get_field_value(self):
-        valid_cases = (
-            # Normal case, field present and correct type
-            ({ 'present': 1 }, 'present', int, 1),
-            ({ 'present': '1' }, 'present', str, '1'),
-            ({ 'present': [1] }, 'present', list, [1]),
-            ({ 'present': {1: 2} }, 'present', dict, {1: 2}),
-            # Missing field replaced by default
-            ({}, 'missing', str, ''),
-            # Valid conversions
-            ({ 'str_to_int': '1' }, 'str_to_int', int, 1),
-            ({ 'int_to_str': 1 }, 'int_to_str', str, '1'),
-        )
-        for valid_case in valid_cases:
-            with self.subTest(valid_case=valid_case):
-                container, field_name, field_type, expected = valid_case
-                self.assertEqual(
-                    local_cloudbuild.get_field_value(
-                        container, field_name, field_type),
-                    expected)
-
-        invalid_cases = (
-            # Type conversion failures
-            ({ 'bad_list_to_dict': [1] }, 'bad_list_to_dict', dict),
-            ({ 'bad_list_to_str': [1] }, 'bad_list_to_str', str),
-            ({ 'bad_dict_to_list': {1: 2} }, 'bad_dict_to_list', list),
-            ({ 'bad_str_to_int': 'not_an_int' }, 'bad_str_to_int', int),
-            ({ 'bad_str_to_list': 'abc' }, 'bad_str_to_list', list),
-        )
-        for invalid_case in invalid_cases:
-            with self.subTest(invalid_case=invalid_case):
-                container, field_name, field_type = invalid_case
-                with self.assertRaises(ValueError):
-                    local_cloudbuild.get_field_value(
-                        container, field_name, field_type)
-
-    def test_validate_arg_regex(self):
-        self.assertEqual(
-            local_cloudbuild.validate_arg_regex('abc', re.compile('a[b]c')),
-            'abc')
-        with self.assertRaises(argparse.ArgumentTypeError):
-            local_cloudbuild.validate_arg_regex('abc', re.compile('a[d]c'))
+@pytest.fixture
+def testdata_dir():
+    testdata_dir = os.path.join(os.path.dirname(__file__), 'testdata')
+    assert os.path.isdir(testdata_dir), (
+        'Could not run test: testdata directory not found')
+    return testdata_dir
 
 
-    def test_validate_arg_dict(self):
-        valid_cases = (
-            # Normal case, field present and correct type
-            ('', {}),
-            ('_A=1', {'_A':'1'}),
-            ('_A=1,_B=2', {'_A':'1', '_B':'2'}),
-            # Repeated key is ok
-            ('_A=1,_A=2', {'_A':'2'}),
-            # Extra = is ok
-            ('_A=x=y=z,_B=2', {'_A':'x=y=z', '_B':'2'}),
-            # No value is ok
-            ('_A=', {'_A':''}),
-        )
-        for valid_case in valid_cases:
-            with self.subTest(valid_case=valid_case):
-                s, expected = valid_case
-                self.assertEqual(
-                    local_cloudbuild.validate_arg_dict(s),
-                    expected)
-
-        invalid_cases = (
-            # No key
-            ',_A',
-            '_A,',
-            # Invalid variable name
-            '_Aa=1',
-            '_aA=1',
-            '0A=1',
-        )
-        for invalid_case in invalid_cases:
-            with self.subTest(invalid_case=invalid_case):
-                with self.assertRaises(argparse.ArgumentTypeError):
-                    local_cloudbuild.validate_arg_dict(invalid_case)
+@pytest.mark.parametrize('s, subs, expected, expected_used', [
+    # Empty string
+    ('', {}, "''", []),
+    # No substitutions
+    ('a', {}, 'a', []),
+    # Unused substitition (ok here but error in generate_script)
+    ('a', {'FOO': 'foo'}, 'a', []),
+    ('a', {'_FOO': '_foo'}, 'a', []),
+    # Defined builtin substitution
+    ('a$FOOb', {'FOO': 'foo'}, 'afoob', ['FOO']),
+    ('a${FOO}b', {'FOO': 'foo'}, 'afoob', ['FOO']),
+    # Defined user substitution
+    ('a$_FOOb', {'_FOO': '_foo'}, 'a_foob', ['_FOO']),
+    ('a${_FOO}b', {'_FOO': '_foo'}, 'a_foob', ['_FOO']),
+    # Multiple substitutions
+    ('$FOO${FOO}${BAR}$FOO',
+     {'FOO': 'foo', 'BAR': 'bar'},
+     'foofoobarfoo',
+     ['FOO', 'BAR']),
+    # Invalid names
+    ('a $ b', {}, "'a $ b'", []),
+    ('a$foo b', {}, "'a$foo b'", []),
+    ('a$0FOO b', {}, "'a$0FOO b'", []),
+])
+def test_sub_and_quote_valid(s, subs, expected, expected_used):
+    used = set()
+    actual = local_cloudbuild.sub_and_quote(s, subs, used)
+    assert actual == expected
+    assert used == set(expected_used)
 
 
-class LocalCloudbuildTest(unittest.TestCase):
+@pytest.mark.parametrize('s, subs', [
+    # Undefined builtin substitution
+    ('a$FOOb', {}),
+    ('a${FOO}b', {}),
+    # Undefined user substitution
+    ('a$_FOOb', {}),
+    ('a${_FOO}b', {}),
+])
+def test_sub_and_quote_invalid(s, subs):
+    with pytest.raises(ValueError):
+        used = set()
+        local_cloudbuild.sub_and_quote(s, subs, used)
 
-    def setUp(self):
-        self.testdata_dir = 'testdata'
-        assert os.path.isdir(self.testdata_dir), 'Could not run test: testdata directory not found'
 
-    def test_sub_and_quote(self):
-        valid_cases = (
-            # Empty string
-            ('', {}, "''", []),
-            # No substitutions
-            ('a', {}, 'a', []),
-            # Unused substitition (ok here but error in generate_script)
-            ('a', {'FOO':'foo'}, 'a', []),
-            ('a', {'_FOO':'_foo'}, 'a', []),
-            # Defined builtin substitution
-            ('a$FOOb', {'FOO':'foo'}, 'afoob', ['FOO']),
-            ('a${FOO}b', {'FOO':'foo'}, 'afoob', ['FOO']),
-            # Defined user substitution
-            ('a$_FOOb', {'_FOO':'_foo'}, 'a_foob', ['_FOO']),
-            ('a${_FOO}b', {'_FOO':'_foo'}, 'a_foob', ['_FOO']),
-            # Multiple substitutions
-            ('$FOO${FOO}${BAR}$FOO', {'FOO':'foo', 'BAR':'bar'},
-             'foofoobarfoo', ['FOO', 'BAR']),
-            # Invalid names
-            ('a $ b', {}, "'a $ b'", []),
-            ('a$foo b', {}, "'a$foo b'", []),
-            ('a$0FOO b', {}, "'a$0FOO b'", []),
-        )
-        for valid_case in valid_cases:
-            with self.subTest(valid_case=valid_case):
-                s, subs, expected, expected_used = valid_case
-                used = set()
-                actual = local_cloudbuild.sub_and_quote(s, subs, used)
-                self.assertEqual(actual, expected)
-                self.assertEqual(used, set(expected_used))
+def have_docker():
+    """Determine if the Docker daemon is present and usable"""
+    if ((shutil.which('docker') is not None) and
+        (subprocess.call(['docker', 'info'],
+                         stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL) == 0)):
+        return True
+    return False
 
-        invalid_cases = (
-            # Undefined builtin substitution
-            ('a$FOOb', {}),
-            ('a${FOO}b', {}),
-            # Undefined user substitution
-            ('a$_FOOb', {}),
-            ('a${_FOO}b', {}),
-        )
-        for invalid_case in invalid_cases:
-            with self.subTest(invalid_case=invalid_case):
-                s, subs = invalid_case
-                with self.assertRaises(ValueError):
-                    used = set()
-                    local_cloudbuild.sub_and_quote(s, subs, used)
 
-    def check_call_with_capture(self, *args, **kw_args):
-        """Act like subprocess.check_call but capture stdout"""
+_args = argparse.Namespace(
+    config='some_config_file',
+    output_script='some_output_script',
+    run=False,
+    substitutions={},
+)
+
+
+def test_get_cloudbuild_valid():
+    raw_yaml = 'steps:\n- name: step1\n- name: step2\n'
+    raw_config = yaml.safe_load(raw_yaml)
+    actual = local_cloudbuild.get_cloudbuild(raw_config, _args)
+    assert len(actual.steps) == 2
+
+
+@pytest.mark.parametrize('raw_yaml', [
+    # Empty cloud build
+    '',
+    # No steps
+    'foo: bar\n',
+    # Steps not a list
+    'steps: astring\n',
+    ])
+def test_get_cloudbuild_invalid(raw_yaml):
+    raw_config = yaml.safe_load(raw_yaml)
+    with pytest.raises(ValueError):
+        local_cloudbuild.get_cloudbuild(raw_config, _args)
+
+
+@pytest.mark.parametrize('raw_step, expected', [
+    # Empty step
+    ({}, local_cloudbuild.Step(
+        args=[],
+        dir_='',
+        env=[],
+        name='',
+    )),
+    # Full step
+    ({'name': 'aname',
+      'args': ['arg1', 2, 'arg3 with \n newline'],
+      'env': ['ENV1=value1', 'ENV2=space in value2'],
+      'dir': 'adir',
+      }, local_cloudbuild.Step(
+        args=['arg1', '2', 'arg3 with \n newline'],
+        env=['ENV1=value1', 'ENV2=space in value2'],
+        dir_='adir',
+        name='aname',
+    )),
+])
+def test_get_step_valid(raw_step, expected):
+    actual = local_cloudbuild.get_step(raw_step)
+    assert actual == expected
+
+
+@pytest.mark.parametrize('raw_step', [
+    # Wrong type
+    [],
+    # More wrong types
+    {'args': 'not_a_list'},
+    {'args': [[]]},
+    {'env': 'not_a_list'},
+    {'env': [{}]},
+    {'dir': {}},
+    {'name': []},
+])
+def test_get_step_invalid(raw_step):
+    with pytest.raises(ValueError):
+        local_cloudbuild.get_step(raw_step)
+
+
+# Basic valid case
+_base_step = local_cloudbuild.Step(
+    args=['arg1', 'arg2'],
+    dir_='',
+    env=['ENV1=value1', 'ENV2=value2'],
+    name='aname',
+)
+_subs = {'BUILTIN': 'builtin', '_USER': '_user'}
+
+
+def test_generate_command_basic():
+    command = local_cloudbuild.generate_command(_base_step, _subs, set())
+    assert command == [
+        'docker',
+        'run',
+        '--volume',
+        '/var/run/docker.sock:/var/run/docker.sock',
+        '--volume',
+        '/root/.docker:/root/.docker',
+        '--volume',
+        '${HOST_WORKSPACE}:/workspace',
+        '--workdir',
+        '/workspace',
+        '--env',
+        'ENV1=value1',
+        '--env',
+        'ENV2=value2',
+        'aname',
+        'arg1',
+        'arg2',
+    ]
+
+
+@pytest.mark.parametrize('step, args', [
+    # dir specified
+    (_base_step._replace(dir_='adir'),
+     ['--workdir', '/workspace/adir']),
+    # Shell quoting
+    (_base_step._replace(args=['arg with \n newline']),
+     ["'arg with \n newline'"]),
+    (_base_step._replace(dir_='dir/ with space/'),
+     ["/workspace/'dir/ with space/'"]),
+    (_base_step._replace(env=['env with space']),
+     ["'env with space'"]),
+    (_base_step._replace(name='a name'),
+     ["'a name'"]),
+    # Variable substitution
+    (_base_step._replace(name='a $BUILTIN substitution'),
+     ["'a builtin substitution'"]),
+    (_base_step._replace(name='a $_USER substitution'),
+     ["'a _user substitution'"]),
+    (_base_step._replace(name='a curly brace ${BUILTIN} substitution'),
+     ["'a curly brace builtin substitution'"]),
+    (_base_step._replace(
+        name='an escaped $$ or $$$$ or $$FOO or $${_FOO} is unescaped'),
+     ["'an escaped $ or $$ or $FOO or ${_FOO} is unescaped'"]),
+])
+def test_generate_command_valid(step, args):
+    command = local_cloudbuild.generate_command(step, _subs, set())
+    for arg in args:
+        assert arg in command
+
+
+@pytest.mark.parametrize('step', [
+    _base_step._replace(name='a $UNSET_BUILTIN substitution'),
+    _base_step._replace(name='a $_UNSET_USER substitution'),
+])
+def test_generate_command_invalid(step):
+    with pytest.raises(ValueError):
+        local_cloudbuild.generate_command(step, _subs, set())
+
+
+def test_generate_script_golden(testdata_dir):
+    config_name = 'cloudbuild_ok.yaml'
+    expected_output_script = os.path.join(
+        testdata_dir, config_name + '_golden.sh')
+    cloudbuild = local_cloudbuild.CloudBuild(
+        output_script='test_generate_script',
+        run=False,
+        steps=[
+            local_cloudbuild.Step(
+                args=['/bin/sh', '-c', 'printenv MESSAGE'],
+                dir_='',
+                env=['MESSAGE=Hello World!'],
+                name='debian',
+            ),
+            local_cloudbuild.Step(
+                args=['/bin/sh', '-c', 'printenv MESSAGE'],
+                dir_='',
+                env=['MESSAGE=Goodbye\\n And Farewell!', 'UNUSED=unused'],
+                name='debian',
+            )
+        ],
+        substitutions=local_cloudbuild.DEFAULT_SUBSTITUTIONS,
+    )
+    actual = local_cloudbuild.generate_script(cloudbuild)
+    # Compare output against golden
+    with open(expected_output_script, 'r', encoding='utf8') as expected_file:
+        expected = expected_file.read()
+        assert actual == expected
+
+
+def test_generate_script_unused_user_substitution():
+    cloudbuild = local_cloudbuild.CloudBuild(
+        output_script='',
+        run=False,
+        steps=[],
+        substitutions={'_FOO': '_foo'},
+    )
+    with pytest.raises(ValueError, match='User substitution variables'):
+        local_cloudbuild.generate_script(cloudbuild)
+
+
+def test_make_executable(tmpdir):
+    test_script_filename = tmpdir.join('test_make_executable.sh')
+    with test_script_filename.open('w', encoding='utf8') as test_script:
+        test_script.write('#!/bin/sh\necho "Output from test_make_executable"')
+    local_cloudbuild.make_executable(str(test_script_filename))
+    output = subprocess.check_output([str(test_script_filename)])
+    assert output.decode('utf8') == "Output from test_make_executable\n"
+
+
+def test_write_script(tmpdir):
+    contents = 'The contents\n'
+    output_script_filename = tmpdir.join('test_write_script')
+    cloudbuild = local_cloudbuild.CloudBuild(
+        output_script=str(output_script_filename),
+        run=False,
+        steps=[],
+        substitutions={},
+    )
+    local_cloudbuild.write_script(cloudbuild, contents)
+    with output_script_filename.open('r', encoding='utf8') as output_script:
+        actual = output_script.read()
+    assert actual == contents
+
+
+@contextlib.contextmanager
+def chdir(new_dir):
+    """Not threadsafe"""
+    old_dir = os.getcwd()
+    os.chdir(new_dir)
+    yield
+    os.chdir(old_dir)
+
+
+@pytest.mark.parametrize('config_name, substitutions, exception, cleanup', [
+    # Everything is ok
+    ('cloudbuild_ok.yaml', None, None, True),
+    # Builtin substitutions like $PROJECT_ID work
+    ('cloudbuild_builtin_substitutions.yaml', None, None, True),
+    # User substitutions like $_FOO work
+    ('cloudbuild_user_substitutions.yaml',
+     {'_FOO': 'this is foo value'},
+     None, True
+     ),
+    # User substitutions like $_FOO fails when undefined
+    ('cloudbuild_user_substitutions.yaml', None, ValueError, False),
+    # Exit code 1 (failure)
+    ('cloudbuild_err_rc1.yaml', None, subprocess.CalledProcessError, True),
+    # Command not found
+    ('cloudbuild_err_not_found.yaml', None, subprocess.CalledProcessError,
+     True),
+    # Cleaning up files owned by root
+    ('cloudbuild_difficult_cleanup.yaml', None, None, True),
+])
+def test_local_cloudbuild(testdata_dir, tmpdir, config_name, substitutions,
+                          exception, cleanup):
+    if not have_docker():
+        pytest.fail('This test requires a working Docker daemon')
+
+    check_call_output = None
+
+    def check_call(*args, **kw_args):
+        """Act like subprocess.check_call but store stdout"""
+        nonlocal check_call_output
         try:
-            self.check_call_output = subprocess.check_output(*args, **kw_args)
-            print(self.check_call_output)
+            check_call_output = subprocess.check_output(*args, **kw_args)
+            print(check_call_output)
         except subprocess.CalledProcessError as e:
-            self.check_call_output = e.output
-            print(self.check_call_output)
+            check_call_output = e.output
+            print(check_call_output)
             raise
 
-    def have_docker(self):
-        """Determine if the Docker daemon is present and usable"""
-        if ((shutil.which('docker') is not None) and
-            (subprocess.call(['docker', 'info'],
-                             stdout=subprocess.DEVNULL,
-                             stderr=subprocess.DEVNULL) == 0)):
-            return True
-        return False
-
-    def test_get_cloudbuild(self):
+    # Read cloudbuild.yaml from testdata file, write output to
+    # tempdir, and maybe try to run it
+    with unittest.mock.patch('subprocess.check_call', check_call):
+        if substitutions is None:
+            substitutions = local_cloudbuild.DEFAULT_SUBSTITUTIONS
+        should_succeed = (exception is None)
+        config = os.path.join(testdata_dir, config_name)
+        actual_output_script = tmpdir.join(config_name + '_local.sh')
         args = argparse.Namespace(
-            config='some_config_file',
-            output_script='some_output_script',
-            run=False,
-            substitutions={},
+            config=config,
+            output_script=str(actual_output_script),
+            run=True,
+            substitutions=substitutions,
         )
-        # Basic valid case
-        valid_case = 'steps:\n- name: step1\n- name: step2\n'
-        raw_config = yaml.safe_load(valid_case)
-        actual = local_cloudbuild.get_cloudbuild(raw_config, args)
-        self.assertEqual(len(actual.steps), 2)
 
-        invalid_cases = (
-            # Empty cloud build
-            '',
-            # No steps
-            'foo: bar\n',
-            # Steps not a list
-            'steps: astring\n',
-        )
-        for invalid_case in invalid_cases:
-            with self.subTest(invalid_case=invalid_case):
-                raw_config = yaml.safe_load(invalid_case)
-                with self.assertRaises(ValueError):
-                    local_cloudbuild.get_cloudbuild(raw_config, args)
-
-    def test_get_step(self):
-        valid_cases = (
-            # Empty step
-            ({}, local_cloudbuild.Step(
-                args=[],
-                dir_='',
-                env=[],
-                name='',
-            )),
-            # Full step
-            ({'name' : 'aname',
-              'args' : [ 'arg1', 2, 'arg3 with \n newline', ],
-              'env' : [ 'ENV1=value1', 'ENV2=space in value2' ],
-              'dir' : 'adir',
-              }, local_cloudbuild.Step(
-                  args = [ 'arg1', '2', 'arg3 with \n newline', ],
-                  env = [ 'ENV1=value1', 'ENV2=space in value2' ],
-                  dir_ = 'adir',
-                  name = 'aname',
-              )),
-        )
-        for valid_case in valid_cases:
-            with self.subTest(valid_case=valid_case):
-                raw_step, expected = valid_case
-                actual = local_cloudbuild.get_step(raw_step)
-                self.assertEqual(actual, expected)
-
-        invalid_cases = (
-            # Wrong type
-            [],
-            # More wrong types
-            {'args': 'not_a_list'},
-            {'args': [ [] ]},
-            {'env': 'not_a_list'},
-            {'env': [ {} ]},
-            {'dir': {}},
-            {'name': []},
-        )
-        for invalid_case in invalid_cases:
-            with self.subTest(invalid_case=invalid_case):
-                with self.assertRaises(ValueError):
-                    local_cloudbuild.get_step(invalid_case)
-
-    def test_generate_command(self):
-        # Basic valid case
-        base_step = local_cloudbuild.Step(
-            args = ['arg1','arg2'],
-            dir_ = '',
-            env = ['ENV1=value1', 'ENV2=value2'],
-            name = 'aname',
-        )
-        subs = {'BUILTIN':'builtin', '_USER':'_user'}
-        command = local_cloudbuild.generate_command(base_step, subs, set())
-        self.assertEqual(command, [
-            'docker',
-            'run',
-            '--volume',
-            '/var/run/docker.sock:/var/run/docker.sock',
-            '--volume',
-            '/root/.docker:/root/.docker',
-            '--volume',
-            '${HOST_WORKSPACE}:/workspace',
-            '--workdir',
-            '/workspace',
-            '--env',
-            'ENV1=value1',
-            '--env',
-            'ENV2=value2',
-            'aname',
-            'arg1',
-            'arg2',
-        ])
-
-        valid_cases = (
-            # dir specified
-            (base_step._replace(dir_='adir'),
-             ['--workdir', '/workspace/adir']),
-            # Shell quoting
-            (base_step._replace(args=['arg with \n newline']),
-             ["'arg with \n newline'"]),
-            (base_step._replace(dir_='dir/ with space/'),
-             ["/workspace/'dir/ with space/'"]),
-            (base_step._replace(env=['env with space']),
-             ["'env with space'"]),
-            (base_step._replace(name='a name'),
-             ["'a name'"]),
-            # Variable substitution
-            (base_step._replace(name='a $BUILTIN substitution'),
-             ["'a builtin substitution'"]),
-            (base_step._replace(name='a $_USER substitution'),
-             ["'a _user substitution'"]),
-            (base_step._replace(name='a curly brace ${BUILTIN} substitution'),
-             ["'a curly brace builtin substitution'"]),
-            (base_step._replace(name='an escaped $$ or $$$$ or $$FOO or $${_FOO} is unescaped'),
-             ["'an escaped $ or $$ or $FOO or ${_FOO} is unescaped'"]),
-        )
-        for valid_case in valid_cases:
-            with self.subTest(valid_case=valid_case):
-                step, args = valid_case
-                command = local_cloudbuild.generate_command(step, subs, set())
-                for arg in args:
-                    self.assertIn(arg, command)
-
-        invalid_cases = (
-            base_step._replace(name='a $UNSET_BUILTIN substitution'),
-            base_step._replace(name='a $_UNSET_USER substitution'),
-        )
-        for invalid_case in invalid_cases:
-            with self.subTest(invalid_case=invalid_case):
-                step = invalid_case
-                with self.assertRaises(ValueError):
-                    local_cloudbuild.generate_command(step, subs, set())
-
-    def test_generate_script_golden(self):
-        config_name = 'cloudbuild_ok.yaml'
-        config = os.path.join(self.testdata_dir, config_name)
-        expected_output_script = os.path.join(self.testdata_dir, config_name + '_golden.sh')
-        cloudbuild = local_cloudbuild.CloudBuild(
-            output_script='test_generate_script',
-            run=False,
-            steps=[
-                local_cloudbuild.Step(
-                    args=['/bin/sh', '-c', 'printenv MESSAGE'],
-                    dir_='',
-                    env=['MESSAGE=Hello World!'],
-                    name='debian',
-                ),
-                local_cloudbuild.Step(
-                    args=['/bin/sh', '-c', 'printenv MESSAGE'],
-                    dir_='',
-                    env=['MESSAGE=Goodbye\\n And Farewell!', 'UNUSED=unused'],
-                    name='debian',
-                )
-            ],
-            substitutions=local_cloudbuild.DEFAULT_SUBSTITUTIONS,
-        )
-        actual = local_cloudbuild.generate_script(cloudbuild)
-        self.maxDiff = 2**16
-        # Compare output against golden
-        with open(expected_output_script, 'r', encoding='utf8') as expected:
-            self.assertEqual(actual, expected.read())
-
-    def test_generate_script_unused_user_substitution(self):
-        cloudbuild = local_cloudbuild.CloudBuild(
-            output_script='',
-            run=False,
-            steps=[],
-            substitutions={'_FOO':'_foo'},
-        )
-        with self.assertRaisesRegex(ValueError, 'User substitution variables'):
-            actual = local_cloudbuild.generate_script(cloudbuild)
-
-    def test_make_executable(self):
-        with tempfile.TemporaryDirectory(
-                prefix='local_cloudbuild_test_') as tempdir:
-            test_script_filename = os.path.join(tempdir, 'test_make_executable.sh')
-            with open(test_script_filename, 'w', encoding='utf8') as test_script:
-                test_script.write('#!/bin/sh\necho "Output from test_make_executable"')
-            local_cloudbuild.make_executable(test_script_filename)
-            output = subprocess.check_output([test_script_filename])
-            self.assertEqual(output.decode('utf8'), "Output from test_make_executable\n")
-
-    def test_write_script(self):
-        with tempfile.TemporaryDirectory(
-            prefix='local_cloudbuild_test_') as tempdir:
-            contents = 'The contents\n'
-            output_script_filename = os.path.join(tempdir, 'test_write_script')
-            cloudbuild = local_cloudbuild.CloudBuild(
-                output_script=output_script_filename,
-                run=False,
-                steps=[],
-                substitutions={},
-            )
-            local_cloudbuild.write_script(cloudbuild, contents)
-            with open(output_script_filename, 'r', encoding='utf8') as output_script:
-                actual = output_script.read()
-            self.assertEqual(actual, contents)
-
-    def test_local_cloudbuild(self):
-        if not self.have_docker():
-            self.fail('This test requires a working Docker daemon')
-
-        # Read cloudbuild.yaml from testdata file, write output to
-        # tempdir, and maybe try to run it
-        cases = (
-            # Everything is ok
-            ('cloudbuild_ok.yaml', None, None),
-            # Builtin substitutions like $PROJECT_ID work
-            ('cloudbuild_builtin_substitutions.yaml', None, None),
-            # User substitutions like $_FOO work
-            ('cloudbuild_user_substitutions.yaml',
-             {'_FOO':'this is foo value'},
-             None
-            ),
-            # User substitutions like $_FOO fails when undefined
-            ('cloudbuild_user_substitutions.yaml', None, ValueError),
-            # Exit code 1 (failure)
-            ('cloudbuild_err_rc1.yaml', None, subprocess.CalledProcessError),
-            # Command not found
-            ('cloudbuild_err_not_found.yaml', None, subprocess.CalledProcessError),
-            # Cleaning up files owned by root
-            ('cloudbuild_difficult_cleanup.yaml', None, None),
-        )
-        for case in cases:
-            with self.subTest(case=case), \
-                    tempfile.TemporaryDirectory(prefix='local_cloudbuild_test_') as tempdir, \
-                    unittest.mock.patch('subprocess.check_call', self.check_call_with_capture):
-                config_name, substitutions, exception = case
-                if substitutions is None:
-                    substitutions = local_cloudbuild.DEFAULT_SUBSTITUTIONS
-                should_succeed = (exception is None)
-                config = os.path.join(self.testdata_dir, config_name)
-                actual_output_script = os.path.join(
-                    tempdir, config_name + '_local.sh')
-                args = argparse.Namespace(
-                    config=config,
-                    output_script=actual_output_script,
-                    run=True,
-                    substitutions=substitutions,
-                )
-
-                if should_succeed:
+        # The source directory of the build is currently hardcoded as
+        # '.', so we must chdir there.
+        with chdir(testdata_dir):
+            if should_succeed:
+                local_cloudbuild.local_cloudbuild(args)
+            else:
+                with pytest.raises(exception):
                     local_cloudbuild.local_cloudbuild(args)
-                else:
-                    with self.assertRaises(exception):
-                        local_cloudbuild.local_cloudbuild(args)
 
-                # Check that staging dir was cleaned up
-                match = re.search(STAGING_DIR_REGEX, self.check_call_output)
-                self.assertTrue(match)
-                staging_dir = match.group(1)
-                self.assertFalse(os.path.isdir(staging_dir), staging_dir)
-
-    def test_parse_args(self):
-        # Test explicit output_script
-        argv = ['argv0', '--output_script=my_output']
-        args = local_cloudbuild.parse_args(argv)
-        self.assertEqual(args.output_script, 'my_output')
-        # Test implicit output_script
-        argv = ['argv0', '--config=my_config']
-        args = local_cloudbuild.parse_args(argv)
-        self.assertEqual(args.output_script, 'my_config_local.sh')
-
-        # Test run flag (default and --no-run)
-        argv = ['argv0']
-        args = local_cloudbuild.parse_args(argv)
-        self.assertEqual(args.run, True)
-        argv = ['argv0', '--no-run']
-        args = local_cloudbuild.parse_args(argv)
-        self.assertEqual(args.run, False)
+        # Check that staging dir was cleaned up
+        if cleanup:
+            assert check_call_output is not None
+            match = re.search(STAGING_DIR_REGEX, check_call_output)
+            assert match
+            staging_dir = match.group(1)
+            assert not os.path.isdir(staging_dir)
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.mark.parametrize('argv, expected', [
+    # Test explicit output_script
+    (['argv0', '--output_script=my_output'], 'my_output'),
+    # Test implicit output_script
+    (['argv0', '--config=my_config'], 'my_config_local.sh'),
+])
+def test_parse_args_output_script(argv, expected):
+    args = local_cloudbuild.parse_args(argv)
+    assert args.output_script == expected
+
+
+@pytest.mark.parametrize('argv, expected', [
+    # Test run flag (default)
+    (['argv0'], True),
+    (['argv0', '--no-run'], False),
+])
+def test_parse_args_run_flag(argv, expected):
+    args = local_cloudbuild.parse_args(argv)
+    assert args.run == expected
