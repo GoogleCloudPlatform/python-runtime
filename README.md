@@ -20,7 +20,7 @@ docker by specifying `runtime: python` in your `app.yaml`:
 
 ```yaml
 runtime: python
-vm: true
+env: flex
 entrypoint: gunicorn -b :$PORT main:app
 
 runtime_config:
