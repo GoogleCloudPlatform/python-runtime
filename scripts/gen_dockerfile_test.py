@@ -30,7 +30,7 @@ import gen_dockerfile
 
 
 # Expected list of files generated
-EXPECTED_OUTPUT_FILES = ['Dockerfile', '.dockerignore']
+EXPECTED_OUTPUT_FILES = set(('Dockerfile', '.dockerignore'))
 
 
 @pytest.fixture
@@ -118,7 +118,7 @@ def test_get_app_config_invalid(app_yaml):
 
 
 # Basic AppConfig used below
-_base = gen_dockerfile.AppConfig(
+_BASE_APP_CONFIG = gen_dockerfile.AppConfig(
     base_image='',
     dockerfile_python_version='',
     entrypoint='',
@@ -128,25 +128,25 @@ _base = gen_dockerfile.AppConfig(
 
 @pytest.mark.parametrize('app_config, should_find, test_string', [
     # Requirements.txt
-    (_base, False, 'ADD requirements.txt'),
-    (_base._replace(has_requirements_txt=True), True,
+    (_BASE_APP_CONFIG, False, 'ADD requirements.txt'),
+    (_BASE_APP_CONFIG._replace(has_requirements_txt=True), True,
      'ADD requirements.txt'),
     # Entrypoint
-    (_base, False, 'CMD'),
-    (_base._replace(entrypoint='my entrypoint'), True,
+    (_BASE_APP_CONFIG, False, 'CMD'),
+    (_BASE_APP_CONFIG._replace(entrypoint='my entrypoint'), True,
      'CMD my entrypoint'),
-    (_base._replace(entrypoint='exec my entrypoint'), True,
+    (_BASE_APP_CONFIG._replace(entrypoint='exec my entrypoint'), True,
      'CMD exec my entrypoint'),
     # Base runtime image
-    (_base._replace(base_image='my_base_runtime_image'), True,
+    (_BASE_APP_CONFIG._replace(base_image='my_base_runtime_image'), True,
      'FROM my_base_runtime_image'),
     # Python version
-    (_base._replace(dockerfile_python_version='_my_version'), True,
+    (_BASE_APP_CONFIG._replace(dockerfile_python_version='_my_version'), True,
      'python_version=python_my_version'),
 ])
 def test_generate_files(app_config, should_find, test_string):
     result = gen_dockerfile.generate_files(app_config)
-    assert sorted(result.keys()) == sorted(EXPECTED_OUTPUT_FILES)
+    assert set(result.keys()) == EXPECTED_OUTPUT_FILES
     dockerfile = result['Dockerfile']
     if should_find:
         assert test_string in dockerfile
@@ -154,38 +154,38 @@ def test_generate_files(app_config, should_find, test_string):
         assert test_string not in dockerfile
 
 
-@pytest.mark.parametrize('app', [
-    # Sample from https://github.com/GoogleCloudPlatform/python-docs-samples
-    'hello_world',
-])
-def test_generate_dockerfile_command(tmpdir, testdata_dir, app):
-    """Generates output and compares against a set of golden files.
+def compare_against_golden_files(app, config_dir, testdata_dir):
+    golden_dir = os.path.join(testdata_dir, app + '_golden')
+    for filename in EXPECTED_OUTPUT_FILES:
+        compare_file(filename, config_dir, golden_dir)
 
-    Optionally runs 'gcloud app gen-config' and compares against that.
-    """
+
+def test_generate_dockerfile_command(tmpdir, testdata_dir):
+    """Generates output and compares against a set of golden files."""
+    # Sample from https://github.com/GoogleCloudPlatform/python-docs-samples
+    app = 'hello_world'
     app_dir = os.path.join(testdata_dir, app)
-    temp_dir = os.path.join(str(tmpdir), app)
-    os.mkdir(temp_dir)
 
     # Copy sample app to writable temp dir, and generate Dockerfile.
-    config_dir = os.path.join(temp_dir, 'config')
+    config_dir = os.path.join(str(tmpdir), 'config')
     shutil.copytree(app_dir, config_dir)
     gen_dockerfile.generate_dockerfile_command(
         base_image='gcr.io/google-appengine/python',
         config_file=os.path.join(config_dir, 'app.yaml'),
         source_dir=config_dir)
+    compare_against_golden_files(app, config_dir, testdata_dir)
 
-    # Compare against golden files
-    golden_dir = os.path.join(testdata_dir, app + '_golden')
-    for filename in EXPECTED_OUTPUT_FILES:
-        compare_file(filename, config_dir, golden_dir)
 
-    # Copy sample app to different writable temp dir, and
-    # generate Dockerfile using gcloud.
-    if not shutil.which('gcloud'):
-        print('"gcloud" tool not found in $PATH, skipping rest of test')
-        return
-    gen_config_dir = os.path.join(temp_dir, 'gen_config')
+@pytest.mark.xfail(not shutil.which('gcloud'),
+                   reason='Google Cloud SDK is not installed')
+def test_generate_dockerfile_golden(tmpdir, testdata_dir):
+    """Validate our golden files against gcloud app gen-config"""
+    # Sample from https://github.com/GoogleCloudPlatform/python-docs-samples
+    app = 'hello_world'
+    app_dir = os.path.join(testdata_dir, app)
+
+    # Copy sample app to writable temp dir, and generate Dockerfile.
+    gen_config_dir = os.path.join(str(tmpdir), 'gen_config')
     shutil.copytree(app_dir, gen_config_dir)
     app_yaml = os.path.join(gen_config_dir, 'app.yaml')
     gcloud_args = [
@@ -194,8 +194,7 @@ def test_generate_dockerfile_command(tmpdir, testdata_dir, app):
     ]
     print('Invoking gcloud as {}'.format(gcloud_args))
     subprocess.check_call(gcloud_args)
-    for filename in EXPECTED_OUTPUT_FILES:
-        compare_file(filename, config_dir, gen_config_dir)
+    compare_against_golden_files(app, gen_config_dir, testdata_dir)
 
 
 @pytest.mark.parametrize('argv', [
@@ -219,7 +218,7 @@ def test_parse_args_invalid(argv):
         """Prevent argparse from calling sys.exit()"""
         raise AssertionError(*args)
 
-    with unittest.mock.patch.object(argparse.ArgumentParser, 'error',
-                                    mock_error):
+    with unittest.mock.patch.object(
+        argparse.ArgumentParser, 'error', mock_error):
         with pytest.raises(AssertionError):
             gen_dockerfile.parse_args(argv)
