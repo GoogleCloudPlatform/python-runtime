@@ -70,7 +70,7 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
 
     We validate the user input for security and better error messages.
 
-    Consider, parsing a yaml file which has a string value where we
+    Consider parsing a yaml file which has a string value where we
     expected a list.  Python will happily use the string as a sequence
     of individual characters, at least for a while, leading to
     confusing results when it finally fails.
@@ -84,7 +84,7 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
         raw_config (dict): deserialized app.yaml
         base_image (str): Docker image name to build on top of
         config_file (str): Path to user's app.yaml (might be <service>.yaml)
-        source_dir (str): Directory container user's source code
+        source_dir (str): Directory containing user's source code
 
     Returns:
         AppConfig: valid configuration
