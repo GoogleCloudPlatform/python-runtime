@@ -218,7 +218,8 @@ def test_parse_args_invalid(argv):
         """Prevent argparse from calling sys.exit()"""
         raise AssertionError(*args)
 
-    with unittest.mock.patch.object(
-        argparse.ArgumentParser, 'error', mock_error):
+    error_patch = unittest.mock.patch.object(
+        argparse.ArgumentParser, 'error', mock_error)
+    with error_patch:
         with pytest.raises(AssertionError):
             gen_dockerfile.parse_args(argv)
