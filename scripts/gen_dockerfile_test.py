@@ -223,3 +223,7 @@ def test_parse_args_invalid(argv):
     with error_patch:
         with pytest.raises(AssertionError):
             gen_dockerfile.parse_args(argv)
+
+
+if __name__ == '__main__':
+    pytest.main([__file__])
