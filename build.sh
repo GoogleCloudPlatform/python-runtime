@@ -50,11 +50,19 @@ if [ -z "${DOCKER_NAMESPACE+set}" ] ; then
   fatal 'Error: $DOCKER_NAMESPACE is not set; invoke with something like DOCKER_NAMESPACE=gcr.io/YOUR-PROJECT-NAME'
 fi
 
+if [ -z "${BUILDER_DOCKER_NAMESPACE+set}" ] ; then
+  export BUILDER_DOCKER_NAMESPACE="${DOCKER_NAMESPACE}"
+fi
+
 if [ -z "${TAG+set}" ] ; then
   export TAG=`date +%Y-%m-%d-%H%M%S`
 fi
 
-substitutions="_DOCKER_NAMESPACE=${DOCKER_NAMESPACE},_TAG=${TAG}"
+substitutions="\
+_BUILDER_DOCKER_NAMESPACE=${BUILDER_DOCKER_NAMESPACE},\
+_DOCKER_NAMESPACE=${DOCKER_NAMESPACE},\
+_TAG=${TAG}\
+"
 
 # Read command line arguments
 while [ $# -gt 0 ]; do
