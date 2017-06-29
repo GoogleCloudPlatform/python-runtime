@@ -33,9 +33,9 @@ steps:
   name: ${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}
 - # Build runtime builder image
   name: gcr.io/cloud-builders/docker:latest
-  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/builder/gen-dockerfile:${_TAG}',
+  args: ['build', '--tag=${_BUILDER_DOCKER_NAMESPACE}/python/gen-dockerfile:${_TAG}',
          '--no-cache', '/workspace/builder/gen-dockerfile/']
 images: [
   '${_DOCKER_NAMESPACE}/python:${_TAG}',
-  '${_DOCKER_NAMESPACE}/python/builder/gen-dockerfile:${_TAG}',
+  '${_BUILDER_DOCKER_NAMESPACE}/python/gen-dockerfile:${_TAG}',
 ]
