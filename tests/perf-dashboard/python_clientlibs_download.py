@@ -49,6 +49,16 @@ CLIENTLIBS = {
 
 
 def get_weekly_clientlibs_downloads(client_library, date_str):
+    """Use a SQL query to collect the weekly download data of the client
+    libraries.
+
+    Args:
+        client_library (str): key of the client_library in the CLIENTLIBS dict.
+        date_str (str): A date string in "YYYYMMDD" format.
+
+    Returns:
+         tuple: rows of the query result.
+    """
     timestamp = 'TIMESTAMP("{}")'.format(date_str)
     fields = [
         '{} as timestamp'.format(timestamp),
@@ -79,6 +89,17 @@ def get_weekly_clientlibs_downloads(client_library, date_str):
 
 
 def insert_rows(dataset_name, table_name, rows):
+    """Insert rows to a bigquery table.
+
+    Args:
+        dataset_name (str): Name of the dataset that holds the tables.
+        table_name (str): Name of the bigquery table.
+        rows (tuple): The rows that going to be inserted into the table.
+
+    Returns:
+        list: Empty if inserted successfully, else the errors when inserting
+              each row.
+    """
     client = bigquery.Client()
     dataset = client.dataset(dataset_name)
     table = bigquery.Table(name=table_name, dataset=dataset)
