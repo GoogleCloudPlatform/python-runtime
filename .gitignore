@@ -2,7 +2,5 @@
 .cache
 .coverage
 .nox
-/cloudbuild.yaml_local.sh
-/cloudbuild_benchmark.yaml_local.sh
-/cloudbuild_system_tests.yaml_local.sh
+/*_local.sh
 __pycache__
