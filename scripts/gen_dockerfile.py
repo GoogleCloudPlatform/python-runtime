@@ -57,6 +57,8 @@ PYTHON_INTERPRETER_VERSION_MAP = {
     '3.6': '3.6',
 }
 
+# Name of environment variable potentially set by gcloud
+GAE_APPLICATION_YAML_PATH = 'GAE_APPLICATION_YAML_PATH'
 
 # Validated application configuration
 AppConfig = collections.namedtuple(
@@ -225,11 +227,19 @@ def parse_args(argv):
             validation_utils.validate_arg_regex, flag_regex=IMAGE_REGEX),
         default='gcr.io/google-appengine/python:latest',
         help='Name of Docker image to use as base')
+    # In some cases, gcloud sets an environment variable to indicate
+    # the location of the application configuration file, rather than
+    # using the --config flag.  The order of precedence from highest
+    # to lowest is:
+    #
+    # 1) --config flag
+    # 2) $GAE_APPLICATION_YAML_PATH environment variable
+    # 3) a file named "app.yaml" in the current working directory
     parser.add_argument(
         '--config',
         type=functools.partial(
             validation_utils.validate_arg_regex, flag_regex=PRINTABLE_REGEX),
-        default='app.yaml',
+        default=(os.environ.get(GAE_APPLICATION_YAML_PATH) or 'app.yaml'),
         help='Path to application configuration file'
         )
     parser.add_argument(
