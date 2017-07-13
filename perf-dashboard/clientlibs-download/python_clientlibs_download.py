@@ -115,7 +115,13 @@ def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
     # Fetch the results
     result = query_job.results().fetch_data()
     result_list = [item for item in result]
-    rows = [(date_time,) + row for row in result_list[0]]
+
+    # In case the result_list contains the metadata like total_rows, the
+    # actual rows will be the first element of the result_list.
+    if len(result_list) > 0 and isinstance(result_list[0], list):
+        result_list = result_list[0]
+
+    rows = [(date_time,) + row for row in result_list]
     print rows
 
     return rows
@@ -145,7 +151,7 @@ def main():
     for table_name in CLIENTLIBS.keys():
         rows = get_weekly_clientlibs_downloads(
             clientlibs_table_name=table_name,
-            date_str=datetime.now().strftime("%Y%m%d"))
+            date_str=datetime.datetime.now().strftime("%Y%m%d"))
         insert_rows(
             dataset_name=DATASET_NAME,
             table_name=table_name,
