@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
+import datetime
+import time
+import uuid
+
 from google.cloud import bigquery
 
+DATETIME_FORMAT = '%Y%m%d'
+
 DATASET_NAME = 'python_clientlibs_download_by_week'
+
 VENEER_TABLE_NAME = 'veneer_client_libs'
 STACKDRIVER_TABLE_NAME = 'stackdriver_client_libs'
 GRPC_TABLE_NAME = 'grpc_lib'
@@ -48,44 +54,69 @@ CLIENTLIBS = {
 }
 
 
-def get_weekly_clientlibs_downloads(client_library, date_str):
+def wait_for_job(job):
+    """Wait for the query job to complete."""
+    while True:
+        job.reload()  # Refreshes the state via a GET request.
+        if job.state == 'DONE':
+            if job.error_result:
+                raise RuntimeError(job.errors)
+            return
+        time.sleep(1)
+
+
+def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
     """Use a SQL query to collect the weekly download data of the client
     libraries.
 
     Args:
-        client_library (str): key of the client_library in the CLIENTLIBS dict.
+        clientlibs_table_name (str): Table name, which is the key in the 
+                                     CLIENTLIBS dict.
         date_str (str): A date string in "YYYYMMDD" format.
 
     Returns:
-         tuple: rows of the query result.
+         list: rows of the query result.
     """
-    timestamp = 'TIMESTAMP("{}")'.format(date_str)
-    fields = [
-        '{} as timestamp'.format(timestamp),
-        'file.project as client_library_name',
-        'COUNT(*) as download_count']
-    client_libs = CLIENTLIBS[client_library]
+    client_libs = CLIENTLIBS[clientlibs_table_name]
+    date_time = datetime.datetime.strptime(date_str, DATETIME_FORMAT)
+    week_dates = [(date_time + datetime.timedelta(days=-i))
+                      .strftime(DATETIME_FORMAT)
+                  for i in range(7)]
     query = """
-    SELECT
-      %(fields)s
-    FROM
-      TABLE_DATE_RANGE(%(table_name)s,
-                       DATE_ADD(%(timestamp)s, -6, "day"),
-                       %(timestamp)s)
-    WHERE file.project IN %(client_libs)s
-    GROUP BY timestamp, client_library_name
-    """ % {
-        'fields': ', '.join(fields),
-        'table_name': '[the-psf:pypi.downloads]',
-        'client_libs': tuple(client_libs),
-        'timestamp': timestamp,
-    }
-    print query
+            SELECT
+                file.project as client_library_name,
+                COUNT(*) as download_count
+            FROM
+                `the-psf.pypi.downloads*`
+            WHERE
+                file.project IN UNNEST(@client_libs)
+                AND
+                _TABLE_SUFFIX IN UNNEST(@week_dates)
+            GROUP BY client_library_name
+        """
     client = bigquery.Client()
-    query_job = client.run_sync_query(query)
-    query_job.run()
+    query_job = client.run_async_query(str(uuid.uuid4()), query,
+                                       query_parameters=(
+                                           bigquery.ArrayQueryParameter(
+                                               'client_libs', 'STRING',
+                                               client_libs),
+                                           bigquery.ArrayQueryParameter(
+                                               'week_dates', 'STRING',
+                                               week_dates)
+                                       ))
+    query_job.use_legacy_sql = False
 
-    return query_job.rows
+    # Start the query job and wait it to complete
+    query_job.begin()
+    wait_for_job(query_job)
+
+    # Fetch the results
+    result = query_job.results().fetch_data()
+    result_list = [item for item in result]
+    rows = [(date_time,) + row for row in result_list[0]]
+    print rows
+
+    return rows
 
 
 def insert_rows(dataset_name, table_name, rows):
@@ -94,7 +125,7 @@ def insert_rows(dataset_name, table_name, rows):
     Args:
         dataset_name (str): Name of the dataset that holds the tables.
         table_name (str): Name of the bigquery table.
-        rows (tuple): The rows that going to be inserted into the table.
+        rows (list): The rows that going to be inserted into the table.
 
     Returns:
         list: Empty if inserted successfully, else the errors when inserting
@@ -109,13 +140,13 @@ def insert_rows(dataset_name, table_name, rows):
 
 
 def main():
-    for key in CLIENTLIBS.keys():
+    for table_name in CLIENTLIBS.keys():
         rows = get_weekly_clientlibs_downloads(
-            client_library=key,
+            clientlibs_table_name=table_name,
             date_str=datetime.now().strftime("%Y%m%d"))
         insert_rows(
             dataset_name=DATASET_NAME,
-            table_name=key,
+            table_name=table_name,
             rows=rows)
 
 
