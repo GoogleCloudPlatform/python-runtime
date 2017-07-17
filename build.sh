@@ -19,6 +19,7 @@ set -euo pipefail
 # Actions
 benchmark=0 # Should run benchmarks?
 build=1 # Should build images?
+library_tests=0 # Should try to install top N Python libraries
 system_tests=0 # Should run system tests?
 
 local=0 # Should run using local Docker daemon instead of GCR?
@@ -38,10 +39,11 @@ function usage {
 Build and test artifacts in this repository
 
 Options:
-  --benchmark: Run benchmarking suite
-  --[no]build: Build all images (default)
-  --local: Build images using local Docker daemon
-  --system_tests: Run system tests
+  --[no]benchmark: Run benchmarking suite (default false)
+  --[no]build: Build all images (default true)
+  --[no]library_tests: Run library compatiblity tests (default false)
+  --[no]local: Build images using local Docker daemon (default false)
+  --[no]system_tests: Run system tests (default false)
 "
 }
   
@@ -71,6 +73,10 @@ while [ $# -gt 0 ]; do
       benchmark=1
       shift
       ;;
+    --nobenchmark)
+      benchmark=0
+      shift
+      ;;
     --build)
       build=1
       shift
@@ -79,12 +85,28 @@ while [ $# -gt 0 ]; do
       build=0
       shift
       ;;
+    --library_tests)
+      library_tests=1
+      shift
+      ;;
+    --nolibrary_tests)
+      library_tests=0
+      shift
+      ;;
     --local)
       local=1
       shift
       ;;
+    --nolocal)
+      local=0
+      shift
+      ;;
     --system_tests)
       system_tests=1
+      shift
+      ;;
+    --nosystem_tests)
+      system_tests=0
       shift
       ;;
     *)
@@ -94,7 +116,10 @@ while [ $# -gt 0 ]; do
 done
 
 # If no actions chosen, then tell the user
-if [ "${benchmark}" -eq 0 -a "${build}" -eq 0 -a "${system_tests}" -eq 0 ]; then
+if [ "${benchmark}" -eq 0 -a \
+  "${build}" -eq 0 -a \
+  "${library_tests}" -eq 0 -a \
+  "${system_tests}" -eq 0 ]; then
   fatal 'Error: No actions specified (for example, --build), exiting'
 fi
 
@@ -146,6 +171,12 @@ done
 if [ "${build}" -eq 1 ]; then
   echo "Building images"
   ${gcloud_cmd} --config cloudbuild.yaml --substitutions "${substitutions}"
+fi
+
+# Run just the library compatibility tests (for DPE Gardener bot usually)
+if [ "${library_tests}" -eq 1 ]; then
+  echo "Testing compatibility with popular Python libraries"
+  ${gcloud_cmd} --config cloudbuild_library_tests.yaml --substitutions "${substitutions}"
 fi
 
 # If both system tests and benchmarks are requested, run them both
