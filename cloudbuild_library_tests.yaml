@@ -1,3 +1,4 @@
+timeout: 1800s
 steps:
 - # Check that we can install important libraries without error
   name: gcr.io/gcp-runtimes/structure_test:latest
