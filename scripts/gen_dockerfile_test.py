@@ -225,5 +225,26 @@ def test_parse_args_invalid(argv):
             gen_dockerfile.parse_args(argv)
 
 
+@pytest.mark.parametrize('argv, env, expected', [
+    # Explicit flag wins
+    (['argv0', '--config=flag/path'], 'env/path', 'flag/path'),
+    (['argv0', '--config=flag/path'], '', 'flag/path'),
+    (['argv0', '--config=flag/path'], None, 'flag/path'),
+    # Otherwise env var wins
+    (['argv0'], 'env/path', 'env/path'),
+    # Otherwise use default name
+    (['argv0'], '', 'app.yaml'),
+    (['argv0'], None, 'app.yaml'),
+])
+def test_parse_args_config(argv, env, expected):
+    if env is None:
+        mock_environ = {}
+    else:
+        mock_environ = {gen_dockerfile.GAE_APPLICATION_YAML_PATH: env}
+    with unittest.mock.patch.dict('os.environ', mock_environ, clear=True):
+        args = gen_dockerfile.parse_args(argv)
+        assert args.config == expected
+
+
 if __name__ == '__main__':
     pytest.main([__file__])
