@@ -18,6 +18,8 @@ import uuid
 
 from google.cloud import bigquery
 
+GCLOUD_PROJECT = 'cloud-python-runtime-qa'
+
 DATETIME_FORMAT = '%Y%m%d'
 
 DATASET_NAME = 'python_clientlibs_download_by_week'
@@ -139,7 +141,7 @@ def insert_rows(dataset_name, table_name, rows):
         list: Empty if inserted successfully, else the errors when inserting
               each row.
     """
-    client = bigquery.Client()
+    client = bigquery.Client(project=GCLOUD_PROJECT)
     dataset = client.dataset(dataset_name)
     table = bigquery.Table(name=table_name, dataset=dataset)
     table.reload()
