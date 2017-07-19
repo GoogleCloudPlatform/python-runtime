@@ -6,16 +6,14 @@ set -x
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.6.1/Python-3.6.1.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tgz
 # SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-aa50b0143df7c89ce91be020fe41382613a817354b33acdc6641b44f8ced3828  Python-3.6.1.tgz
+7919489310a5f17f7acbab64d731e46dca0702874840dadce8bd4b2b3b8e7a82  Python-3.6.2.tgz
 EOF
-tar xzf Python-3.6.1.tgz
+tar xzf Python-3.6.2.tgz
 
-# Apply patches
-cd Python-3.6.1
-QUILT_PATCHES=/patches/3.6 quilt push -a
+cd Python-3.6.2
 
 # Explanation of flags:
 #
@@ -147,5 +145,5 @@ find "$PREFIX"/lib/python3.6/test \
 
 # Clean-up sources
 cd /opt
-rm /opt/sources/Python-3.6.1.tgz
-rm -r /opt/sources/Python-3.6.1
+rm /opt/sources/Python-3.6.2.tgz
+rm -r /opt/sources/Python-3.6.2
