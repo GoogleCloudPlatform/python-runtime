@@ -13,10 +13,13 @@
 # limitations under the License.
 
 import datetime
+import os
 import time
 import uuid
 
 from google.cloud import bigquery
+
+GCLOUD_PROJECT_ENV = 'GCLOUD_PROJECT'
 
 DATETIME_FORMAT = '%Y%m%d'
 
@@ -70,7 +73,7 @@ def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
     libraries.
 
     Args:
-        clientlibs_table_name (str): Table name, which is the key in the 
+        clientlibs_table_name (str): Table name, which is the key in the
                                      CLIENTLIBS dict.
         date_str (str): A date string in "YYYYMMDD" format.
 
@@ -139,7 +142,8 @@ def insert_rows(dataset_name, table_name, rows):
         list: Empty if inserted successfully, else the errors when inserting
               each row.
     """
-    client = bigquery.Client()
+    project = os.environ.get(GCLOUD_PROJECT_ENV)
+    client = bigquery.Client(project=project)
     dataset = client.dataset(dataset_name)
     table = bigquery.Table(name=table_name, dataset=dataset)
     table.reload()
