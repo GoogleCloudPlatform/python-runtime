@@ -25,6 +25,10 @@ steps:
     '--config', '/workspace/tests/license-test/license-test.yaml',
     '-v'
     ]
+- # Run compatibility tests
+  name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/eventlet:${_TAG}',
+         '--no-cache', '/workspace/tests/eventlet/']
 - # Build image to run google client library unit tests
   name: gcr.io/cloud-builders/docker:latest
   args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}',

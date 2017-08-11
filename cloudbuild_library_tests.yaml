@@ -12,5 +12,9 @@ steps:
     # Avoid warning about unused substitutions
     'UNUSED1=${_BUILDER_DOCKER_NAMESPACE}',
     ]
+- # Run compatibility tests
+  name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/eventlet:${_TAG}',
+         '--no-cache', '/workspace/tests/eventlet/']
 images: [
 ]

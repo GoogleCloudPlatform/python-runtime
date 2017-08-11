@@ -150,6 +150,7 @@ for outfile in \
   python-interpreter-builder/Dockerfile \
   runtime-image/Dockerfile \
   tests/benchmark/Dockerfile \
+  tests/eventlet/Dockerfile \
   tests/google-cloud-python/Dockerfile \
   tests/google-cloud-python-system/Dockerfile \
   tests/integration/Dockerfile \
@@ -166,6 +167,9 @@ for file in \
   ; do
   cp -a "${file}" "builder/gen-dockerfile/${file##scripts/}"
 done
+
+# Make a file available to the eventlet test.
+cp -a scripts/testdata/hello_world/main.py tests/eventlet/main.py
 
 # Build images and push to GCR
 if [ "${build}" -eq 1 ]; then
