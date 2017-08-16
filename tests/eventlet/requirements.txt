@@ -1,0 +1,10 @@
+click==6.7
+enum-compat==0.0.2
+eventlet==0.21.0
+Flask==0.12.2
+greenlet==0.4.12
+gunicorn==19.7.1
+itsdangerous==0.24
+Jinja2==2.9.6
+MarkupSafe==1.0
+Werkzeug==0.12.2
