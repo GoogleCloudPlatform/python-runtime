@@ -17,6 +17,7 @@
 from functools import wraps
 import json
 import logging
+import os
 
 import google.cloud.logging
 import google.cloud.monitoring
@@ -132,6 +133,7 @@ def _log_default(token, level):
         logging.error('Error while writing logs: {0}'.format(e))
         raise ErrorResponse('Error while writing logs: {0}'.format(e))
 
+    # this is fine regardless of environment, it's only used in GAE logs
     return 'appengine.googleapis.com%2F{0}'.format(source)
 
 
@@ -229,6 +231,18 @@ def _custom():
         }
     ]
     return json.dumps(tests), 200
+
+
+@app.route('/environment', methods=['GET'])
+def _check_environment():
+    # determine what cloud env we're running in; essentially, GAE vs GKE
+    # for GAE, we'll check the existence of an env var starting with 'GAE_'
+    # if none exist, assume we're in GKE
+    env = os.environ
+    for k, v in env.iteritems():
+        if k.startswith('GAE_'):
+            return 'GAE', 200
+    return 'GKE', 200
 
 
 class ErrorResponse(Exception):
