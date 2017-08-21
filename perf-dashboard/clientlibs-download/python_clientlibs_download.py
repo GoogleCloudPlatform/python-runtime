@@ -45,6 +45,7 @@ CLIENTLIBS = {
         'google-cloud-translate',
         'google-cloud-dns',
         'google-cloud-videointelligence',
+        'pandas-gbq',
     ],
     STACKDRIVER_TABLE_NAME: [
         'google-cloud-logging',
