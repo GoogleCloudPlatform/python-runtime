@@ -28,7 +28,14 @@ DATASET_NAME = 'python_clientlibs_download_by_week'
 VENEER_TABLE_NAME = 'veneer_client_libs'
 STACKDRIVER_TABLE_NAME = 'stackdriver_client_libs'
 GRPC_TABLE_NAME = 'grpc_lib'
-TABLES = [VENEER_TABLE_NAME, GRPC_TABLE_NAME, STACKDRIVER_TABLE_NAME]
+THIRD_PARTY_TABLE_NAME = 'third_party_client_libs'
+
+TABLES = [
+    VENEER_TABLE_NAME,
+    GRPC_TABLE_NAME,
+    STACKDRIVER_TABLE_NAME,
+    THIRD_PARTY_TABLE_NAME,
+]
 
 CLIENTLIBS = {
     VENEER_TABLE_NAME: [
@@ -45,7 +52,6 @@ CLIENTLIBS = {
         'google-cloud-translate',
         'google-cloud-dns',
         'google-cloud-videointelligence',
-        'pandas-gbq',
     ],
     STACKDRIVER_TABLE_NAME: [
         'google-cloud-logging',
@@ -55,6 +61,9 @@ CLIENTLIBS = {
     GRPC_TABLE_NAME: [
         'grpcio',
     ],
+    THIRD_PARTY_TABLE_NAME: [
+        'pandas-gbq',
+    ]
 }
 
 
