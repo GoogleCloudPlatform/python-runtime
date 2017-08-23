@@ -29,7 +29,6 @@ RUN apt-get update && apt-get install -yq \
     net-tools \
     netbase \
     python3 \
-    quilt \
     sharutils \
     time \
     tk-dev \
