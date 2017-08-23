@@ -6,16 +6,14 @@ set -x
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.5.3/Python-3.5.3.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.5.4/Python-3.5.4.tgz
 # SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-d8890b84d773cd7059e597dbefa510340de8336ec9b9e9032bf030f19291565a  Python-3.5.3.tgz
+6ed87a8b6c758cc3299a8b433e8a9a9122054ad5bc8aad43299cff3a53d8ca44  Python-3.5.4.tgz
 EOF
-tar xzf Python-3.5.3.tgz
+tar xzf Python-3.5.4.tgz
 
-# Apply patches
-cd Python-3.5.3
-QUILT_PATCHES=/patches/3.5 quilt push -a
+cd Python-3.5.4
 
 # Explanation of flags:
 #
@@ -147,5 +145,5 @@ find "$PREFIX"/lib/python3.5/test \
 
 # Clean-up sources
 cd /opt
-rm /opt/sources/Python-3.5.3.tgz
-rm -r /opt/sources/Python-3.5.3
+rm /opt/sources/Python-3.5.4.tgz
+rm -r /opt/sources/Python-3.5.4
