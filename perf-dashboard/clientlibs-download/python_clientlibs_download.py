@@ -57,6 +57,7 @@ CLIENTLIBS = {
         'google-cloud-logging',
         'google-cloud-monitoring',
         'google-cloud-error_reporting',
+        'google-cloud-trace',
     ],
     GRPC_TABLE_NAME: [
         'grpcio',
