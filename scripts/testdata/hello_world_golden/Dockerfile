@@ -1,6 +1,6 @@
 FROM gcr.io/google-appengine/python
-LABEL python_version=python3.6
-RUN virtualenv --no-download /env -p python3.6
+LABEL python_version=python3.5
+RUN virtualenv --no-download /env -p python3.5
 
 # Set virtualenv environment variables. This is equivalent to running
 # source /env/bin/activate
