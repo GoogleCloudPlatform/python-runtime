@@ -127,7 +127,7 @@ def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
     wait_for_job(query_job)
 
     # Fetch the results
-    result = query_job.result().fetch_data()
+    result = query_job.query_results().fetch_data()
     result_list = [item for item in result]
 
     # In case the result_list contains the metadata like total_rows, the
