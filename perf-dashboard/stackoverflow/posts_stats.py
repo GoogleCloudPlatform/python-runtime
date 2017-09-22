@@ -93,8 +93,7 @@ def insert_rows(dataset_name, table_name, rows):
     dataset = client.dataset(dataset_name)
     table = bigquery.Table(table_name, dataset)
     table.reload()
-    error = table.insert_data(rows)
-    return error
+    table.insert_data(rows)
 
 
 def main():
