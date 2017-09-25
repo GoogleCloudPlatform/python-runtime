@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import datetime
+import os
 import time
 import uuid
 
@@ -99,7 +100,7 @@ def insert_rows(dataset_name, table_name, rows):
 def main():
     rows = get_stackoverflow_tags_count()
     tag_count = count_unique_tags(rows)
-    insert_rows(DATASET_NAME, TABLE_NAME, rows)
+    insert_rows(DATASET_NAME, TABLE_NAME, tag_count)
 
 
 if __name__ == '__main__':
