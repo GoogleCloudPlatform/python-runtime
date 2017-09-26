@@ -14,10 +14,15 @@
 
 import datetime
 import os
+import sys
 import time
 import uuid
 
 from google.cloud import bigquery
+
+sys.path.insert(0, os.path.abspath(__file__+"/../../.."))
+from perf_dashboard import bq_utils
+
 
 GCLOUD_PROJECT_ENV = 'GCLOUD_PROJECT'
 
@@ -68,17 +73,6 @@ CLIENTLIBS = {
 }
 
 
-def wait_for_job(job):
-    """Wait for the query job to complete."""
-    while True:
-        job.reload()  # Refreshes the state via a GET request.
-        if job.state == 'DONE':
-            if job.error_result:
-                raise RuntimeError(job.errors)
-            return
-        time.sleep(1)
-
-
 def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
     """Use a SQL query to collect the weekly download data of the client
     libraries.
@@ -124,42 +118,16 @@ def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
 
     # Start the query job and wait it to complete
     query_job.begin()
-    wait_for_job(query_job)
+    query_job.result()
 
-    # Fetch the results
-    result = query_job.query_results().fetch_data()
-    result_list = [item for item in result]
+    # Get the results
+    destination_table = query_job.destination
+    destination_table.reload()
+    results = destination_table.fetch_data()
 
-    # In case the result_list contains the metadata like total_rows, the
-    # actual rows will be the first element of the result_list.
-    if len(result_list) > 0 and isinstance(result_list[0], list):
-        result_list = result_list[0]
-
-    rows = [(date_time,) + row for row in result_list]
-    print(rows)
+    rows = [(date_time,) + row for row in results]
 
     return rows
-
-
-def insert_rows(dataset_name, table_name, rows):
-    """Insert rows to a bigquery table.
-
-    Args:
-        dataset_name (str): Name of the dataset that holds the tables.
-        table_name (str): Name of the bigquery table.
-        rows (list): The rows that going to be inserted into the table.
-
-    Returns:
-        list: Empty if inserted successfully, else the errors when inserting
-              each row.
-    """
-    project = os.environ.get(GCLOUD_PROJECT_ENV)
-    client = bigquery.Client(project=project)
-    dataset = client.dataset(dataset_name)
-    table = bigquery.Table(name=table_name, dataset=dataset)
-    table.reload()
-    error = table.insert_data(rows)
-    return error
 
 
 def main():
@@ -167,7 +135,8 @@ def main():
         rows = get_weekly_clientlibs_downloads(
             clientlibs_table_name=table_name,
             date_str=datetime.datetime.now().strftime("%Y%m%d"))
-        insert_rows(
+        bq_utils.insert_rows(
+            project=project,
             dataset_name=DATASET_NAME,
             table_name=table_name,
             rows=rows)
