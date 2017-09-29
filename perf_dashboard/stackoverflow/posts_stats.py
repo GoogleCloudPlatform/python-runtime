@@ -30,7 +30,8 @@ from perf_dashboard import bq_utils
 
 GCLOUD_PROJECT_ENV = 'GCLOUD_PROJECT'
 DATASET_NAME = 'stackoverflow'
-TABLE_NAME = 'tag_count_timestamp'
+TAG_COUNT_TABLE_NAME = 'tag_count_timestamp'
+UNANSWERED_POSTS_TABLE_NAME = 'unanswered_posts'
 
 
 def get_stackoverflow_tags_count():
@@ -63,6 +64,40 @@ def get_stackoverflow_tags_count():
     return rows
 
 
+def get_posts_list_unanswered():
+    # Get the list of posts that are unanswered
+    query = """
+            SELECT
+                id, title, tags
+            FROM
+                `bigquery-public-data.stackoverflow.posts_questions`
+            WHERE
+                tags LIKE '%python%'
+            AND (tags LIKE '%google-cloud-platform%' OR tags LIKE '%gcp%')
+            AND accepted_answer_id is NULL
+            AND answer_count = 0;
+        """
+
+    client = bigquery.Client()
+    query_job = client.run_async_query(str(uuid.uuid4()), query)
+    query_job.use_legacy_sql = False
+
+    # Start the query job and wait it to complete
+    query_job.begin()
+    query_job.result()
+
+    # Get the results
+    destination_table = query_job.destination
+    destination_table.reload()
+    results = destination_table.fetch_data()
+
+    # Add current timestamp to the rows
+    date_time = datetime.datetime.now()
+    rows = [(date_time,) + row for row in results]
+
+    return rows
+
+
 def count_unique_tags(data):
     flattened_tag_list = [tag for tag_list in data for tag in tag_list]
     tag_count = Counter(flattened_tag_list)
@@ -75,10 +110,18 @@ def count_unique_tags(data):
 
 
 def main():
+    project = os.environ.get(GCLOUD_PROJECT_ENV)
+
+    # Get the posts count for each tag
     rows = get_stackoverflow_tags_count()
     tag_count = count_unique_tags(rows)
-    project = os.environ.get(GCLOUD_PROJECT_ENV)
-    bq_utils.insert_rows(project, DATASET_NAME, TABLE_NAME, tag_count)
+    bq_utils.insert_rows(
+        project, DATASET_NAME, TAG_COUNT_TABLE_NAME, tag_count)
+
+    # Get the list of unanswered posts
+    unanswered_posts = get_posts_list_unanswered()
+    bq_utils.insert_rows(
+        project, DATASET_NAME, UNANSWERED_POSTS_TABLE_NAME, unanswered_posts)
 
 
 if __name__ == '__main__':
