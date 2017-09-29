@@ -35,7 +35,7 @@ UNANSWERED_POSTS_TABLE_NAME = 'unanswered_posts'
 
 
 def get_stackoverflow_tags_count():
-    # Get all the tags contains python and cloud key words
+    """Get all the tags contains python and cloud key words"""
     query = """
             SELECT
                 SPLIT(tags, '|') tags
@@ -46,18 +46,7 @@ def get_stackoverflow_tags_count():
             AND (tags LIKE '%google-cloud-platform%' OR tags LIKE '%gcp%')
         """
 
-    client = bigquery.Client()
-    query_job = client.run_async_query(str(uuid.uuid4()), query)
-    query_job.use_legacy_sql = False
-
-    # Start the query job and wait it to complete
-    query_job.begin()
-    query_job.result()
-
-    # Get the results
-    destination_table = query_job.destination
-    destination_table.reload()
-    results = destination_table.fetch_data()
+    results = bq_utils.execute_query(query)
 
     rows = [row[0] for row in results]
 
@@ -78,18 +67,7 @@ def get_posts_list_unanswered():
             AND answer_count = 0;
         """
 
-    client = bigquery.Client()
-    query_job = client.run_async_query(str(uuid.uuid4()), query)
-    query_job.use_legacy_sql = False
-
-    # Start the query job and wait it to complete
-    query_job.begin()
-    query_job.result()
-
-    # Get the results
-    destination_table = query_job.destination
-    destination_table.reload()
-    results = destination_table.fetch_data()
+    results = bq_utils.execute_query(query)
 
     # Add current timestamp to the rows
     date_time = datetime.datetime.now()
