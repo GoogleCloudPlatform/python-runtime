@@ -63,13 +63,16 @@ def compare_file(filename, dir1, dir2):
         'dockerfile_python_version': '',
     }),
     ('runtime_config:\n python_version: 3', {
-        'dockerfile_python_version': '3.5',
+        'dockerfile_python_version': '3.6',
     }),
     ('runtime_config:\n python_version: 3.4', {
         'dockerfile_python_version': '3.4',
     }),
     ('runtime_config:\n python_version: 3.5', {
         'dockerfile_python_version': '3.5',
+    }),
+    ('runtime_config:\n python_version: 3.6', {
+        'dockerfile_python_version': '3.6',
     }),
     # entrypoint present
     ('entrypoint: my entrypoint', {
