@@ -189,7 +189,7 @@ fi
 # Run the tests that don't require (too many) external services
 if [ "${test}" -eq 1 ]; then
   echo "Testing compatibility with popular Python libraries"
-  ${gcloud_cmd} --config cloudbuild_tests.yaml --substitutions "${substitutions}"
+  ${gcloud_cmd} --config cloudbuild_test.yaml --substitutions "${substitutions}"
 fi
 
 # Run system tests
@@ -198,7 +198,7 @@ if [ "${system_test}" -eq 1 ]; then
 
   trap "rm -f tests/google-cloud-python-system/credentials.json" EXIT
   cp "${GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS}" tests/google-cloud-python-system/credentials.json
-  ${gcloud_cmd} --config cloudbuild_system_tests.yaml --substitutions  "${substitutions}"
+  ${gcloud_cmd} --config cloudbuild_system_test.yaml --substitutions  "${substitutions}"
   rm -f tests/google-cloud-python-system/credentials.json
 fi
 
