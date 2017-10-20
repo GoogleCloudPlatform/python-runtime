@@ -1,0 +1,28 @@
+timeout: 3600s
+steps:
+- # Validate structure of base runtime image
+  name: gcr.io/gcp-runtimes/structure_test:latest
+  args: [
+    '-i', '${_DOCKER_NAMESPACE}/python:${_TAG}',
+    '--config', '/workspace/tests/virtualenv/virtualenv_default.yaml',
+    '--config', '/workspace/tests/virtualenv/virtualenv_python34.yaml',
+    '--config', '/workspace/tests/virtualenv/virtualenv_python35.yaml',
+    '--config', '/workspace/tests/virtualenv/virtualenv_python36.yaml',
+    '--config', '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
+    '--config', '/workspace/tests/python2-libraries/python2-libraries.yaml',
+    '--config', '/workspace/tests/python3-libraries/python3-libraries.yaml',
+    '--config', '/workspace/tests/license-test/license-test.yaml',
+    '-v'
+    ]
+- # Run compatibility tests
+  name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/eventlet:${_TAG}',
+         '--no-cache', '/workspace/tests/eventlet/']
+- # Build image to run google client library unit tests
+  name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}',
+         '--no-cache', '/workspace/tests/google-cloud-python/']
+- # Run google client library unit tests
+  name: ${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}
+images: [
+]
