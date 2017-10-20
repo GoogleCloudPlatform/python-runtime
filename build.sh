@@ -19,8 +19,8 @@ set -euo pipefail
 # Actions
 benchmark=0 # Should run benchmarks?
 build=0 # Should build images?
-system_tests=0 # Should run system tests?
-tests=0 # Should run standard test suite?
+system_test=0 # Should run system tests?
+test=0 # Should run standard test suite?
 
 local=0 # Should run using local Docker daemon instead of GCR?
 
@@ -41,9 +41,9 @@ Build and test artifacts in this repository
 Options:
   --[no]benchmark: Run benchmarking suite (default false)
   --[no]build: Build all images (default true if no options set)
-  --[no]tests: Run basic tests (default true if no options set)
+  --[no]test: Run basic tests (default true if no options set)
   --[no]local: Build images using local Docker daemon (default false)
-  --[no]system_tests: Run system tests (default false)
+  --[no]system_test: Run system tests (default false)
 "
 }
 
@@ -98,20 +98,20 @@ while [ $# -gt 0 ]; do
       local=0
       shift
       ;;
-    --system_tests)
-      system_tests=1
+    --system_test)
+      system_test=1
       shift
       ;;
-    --nosystem_tests)
-      system_tests=0
+    --nosystem_test)
+      system_test=0
       shift
       ;;
-    --tests)
-      tests=1
+    --test)
+      test=1
       shift
       ;;
-    --notests)
-      tests=0
+    --notest)
+      test=0
       shift
       ;;
     *)
@@ -123,12 +123,12 @@ done
 # If no actions chosen, then tell the user
 if [ "${benchmark}" -eq 0 -a \
   "${build}" -eq 0 -a \
-  "${system_tests}" -eq 0 -a \
-  "${tests}" -eq 0 \
+  "${system_test}" -eq 0 -a \
+  "${test}" -eq 0 \
 ]; then
-  echo 'No actions specified, defaulting to --build --tests'
+  echo 'No actions specified, defaulting to --build --test'
   build=1
-  tests=1
+  test=1
 fi
 
 # Running build local or remote?
@@ -137,7 +137,7 @@ if [ "${local}" -eq 1 ]; then
 fi
 
 # Read action-specific environment variables
-if [ "${system_tests}" -eq 1 ]; then
+if [ "${system_test}" -eq 1 ]; then
   if [ -z "${GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS+set}" ] ; then
     fatal 'Error: $GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS is not set; invoke with something like GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS=/path/to/service/account/creds.json'
   fi
@@ -187,13 +187,13 @@ if [ "${build}" -eq 1 ]; then
 fi
 
 # Run the tests that don't require (too many) external services
-if [ "${tests}" -eq 1 ]; then
+if [ "${test}" -eq 1 ]; then
   echo "Testing compatibility with popular Python libraries"
   ${gcloud_cmd} --config cloudbuild_tests.yaml --substitutions "${substitutions}"
 fi
 
 # Run system tests
-if [ "${system_tests}" -eq 1 ]; then
+if [ "${system_test}" -eq 1 ]; then
   echo "Running system tests using project ${GOOGLE_CLOUD_PROJECT_FOR_TESTS}"
 
   trap "rm -f tests/google-cloud-python-system/credentials.json" EXIT
