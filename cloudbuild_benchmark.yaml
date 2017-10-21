@@ -3,10 +3,6 @@ steps:
 - name: gcr.io/cloud-builders/docker:latest
   args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/benchmark:${_TAG}',
          '--no-cache', '/workspace/tests/benchmark/']
-  env: [
-    # Avoid warning about unused substitutions
-    'UNUSED1=${_BUILDER_DOCKER_NAMESPACE}',
-    ]
 images: [
   # Intentionally empty
 ]

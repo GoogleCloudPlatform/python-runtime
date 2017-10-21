@@ -4,10 +4,6 @@ steps:
   args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/google-cloud-python-system:${_TAG}',
          '--no-cache', '/workspace/tests/google-cloud-python-system/']
 - name: ${_DOCKER_NAMESPACE}/python/tests/google-cloud-python-system:${_TAG}
-  env: [
-    # Avoid warning about unused substitutions
-    'UNUSED1=${_BUILDER_DOCKER_NAMESPACE}',
-    ]
 images: [
   # Intentionally empty
 ]

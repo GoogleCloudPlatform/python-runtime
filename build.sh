@@ -18,9 +18,9 @@ set -euo pipefail
 
 # Actions
 benchmark=0 # Should run benchmarks?
-build=1 # Should build images?
-library_tests=0 # Should try to install top N Python libraries
-system_tests=0 # Should run system tests?
+build=0 # Should build images?
+system_test=0 # Should run system tests?
+test=0 # Should run standard test suite?
 
 local=0 # Should run using local Docker daemon instead of GCR?
 
@@ -40,28 +40,33 @@ Build and test artifacts in this repository
 
 Options:
   --[no]benchmark: Run benchmarking suite (default false)
-  --[no]build: Build all images (default true)
-  --[no]library_tests: Run library compatiblity tests (default false)
+  --[no]build: Build all images (default true if no options set)
+  --[no]test: Run basic tests (default true if no options set)
   --[no]local: Build images using local Docker daemon (default false)
-  --[no]system_tests: Run system tests (default false)
+  --[no]system_test: Run system tests (default false)
 "
 }
-  
+
 # Read environment variables
-if [ -z "${DOCKER_NAMESPACE+set}" ] ; then
+if [ -z "${DOCKER_NAMESPACE:+set}" ] ; then
   fatal 'Error: $DOCKER_NAMESPACE is not set; invoke with something like DOCKER_NAMESPACE=gcr.io/YOUR-PROJECT-NAME'
 fi
 
-if [ -z "${BUILDER_DOCKER_NAMESPACE+set}" ] ; then
+if [ -z "${BUILDER_DOCKER_NAMESPACE:+set}" ] ; then
   export BUILDER_DOCKER_NAMESPACE="${DOCKER_NAMESPACE}"
 fi
 
-if [ -z "${TAG+set}" ] ; then
+if [ -z "${TAG:+set}" ] ; then
   export TAG=`date +%Y-%m-%d-%H%M%S`
 fi
 
-substitutions="\
+build_substitutions="\
 _BUILDER_DOCKER_NAMESPACE=${BUILDER_DOCKER_NAMESPACE},\
+_DOCKER_NAMESPACE=${DOCKER_NAMESPACE},\
+_TAG=${TAG}\
+"
+
+substitutions="\
 _DOCKER_NAMESPACE=${DOCKER_NAMESPACE},\
 _TAG=${TAG}\
 "
@@ -85,14 +90,6 @@ while [ $# -gt 0 ]; do
       build=0
       shift
       ;;
-    --library_tests)
-      library_tests=1
-      shift
-      ;;
-    --nolibrary_tests)
-      library_tests=0
-      shift
-      ;;
     --local)
       local=1
       shift
@@ -101,12 +98,20 @@ while [ $# -gt 0 ]; do
       local=0
       shift
       ;;
-    --system_tests)
-      system_tests=1
+    --system_test)
+      system_test=1
       shift
       ;;
-    --nosystem_tests)
-      system_tests=0
+    --nosystem_test)
+      system_test=0
+      shift
+      ;;
+    --test)
+      test=1
+      shift
+      ;;
+    --notest)
+      test=0
       shift
       ;;
     *)
@@ -118,9 +123,12 @@ done
 # If no actions chosen, then tell the user
 if [ "${benchmark}" -eq 0 -a \
   "${build}" -eq 0 -a \
-  "${library_tests}" -eq 0 -a \
-  "${system_tests}" -eq 0 ]; then
-  fatal 'Error: No actions specified (for example, --build), exiting'
+  "${system_test}" -eq 0 -a \
+  "${test}" -eq 0 \
+]; then
+  echo 'No actions specified, defaulting to --build --test'
+  build=1
+  test=1
 fi
 
 # Running build local or remote?
@@ -129,7 +137,7 @@ if [ "${local}" -eq 1 ]; then
 fi
 
 # Read action-specific environment variables
-if [ "${system_tests}" -eq 1 ]; then
+if [ "${system_test}" -eq 1 ]; then
   if [ -z "${GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS+set}" ] ; then
     fatal 'Error: $GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS is not set; invoke with something like GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS=/path/to/service/account/creds.json'
   fi
@@ -155,7 +163,8 @@ for outfile in \
   tests/google-cloud-python-system/Dockerfile \
   tests/integration/Dockerfile \
   ; do
-  envsubst <"${outfile}".in >"${outfile}" '$DEBIAN_BASE_IMAGE $STAGING_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS'
+  envsubst <"${outfile}".in >"${outfile}" \
+    '$DEBIAN_BASE_IMAGE $STAGING_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS $TAG'
 done
 
 # Make some files available to the runtime builder Docker context
@@ -174,36 +183,27 @@ cp -a scripts/testdata/hello_world/main.py tests/eventlet/main.py
 # Build images and push to GCR
 if [ "${build}" -eq 1 ]; then
   echo "Building images"
-  ${gcloud_cmd} --config cloudbuild.yaml --substitutions "${substitutions}"
+  ${gcloud_cmd} --config cloudbuild.yaml --substitutions "${build_substitutions}"
 fi
 
-# Run just the library compatibility tests (for DPE Gardener bot usually)
-if [ "${library_tests}" -eq 1 ]; then
+# Run the tests that don't require (too many) external services
+if [ "${test}" -eq 1 ]; then
   echo "Testing compatibility with popular Python libraries"
-  ${gcloud_cmd} --config cloudbuild_library_tests.yaml --substitutions "${substitutions}"
+  ${gcloud_cmd} --config cloudbuild_test.yaml --substitutions "${substitutions}"
 fi
-
-# If both system tests and benchmarks are requested, run them both
-# even if one or the other has errors.  If the build step had errors,
-# this script will have already exited.
-exit_code=0
 
 # Run system tests
-if [ "${system_tests}" -eq 1 ]; then
+if [ "${system_test}" -eq 1 ]; then
   echo "Running system tests using project ${GOOGLE_CLOUD_PROJECT_FOR_TESTS}"
 
   trap "rm -f tests/google-cloud-python-system/credentials.json" EXIT
   cp "${GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS}" tests/google-cloud-python-system/credentials.json
-  ${gcloud_cmd} --config cloudbuild_system_tests.yaml --substitutions  "${substitutions}" || \
-    exit_code=1
+  ${gcloud_cmd} --config cloudbuild_system_test.yaml --substitutions  "${substitutions}"
   rm -f tests/google-cloud-python-system/credentials.json
 fi
 
 # Run benchmarks
 if [ "${benchmark}" -eq 1 ] ; then
   echo "Running benchmark"
-  ${gcloud_cmd} --config cloudbuild_benchmark.yaml --substitutions  "${substitutions}" || \
-    exit_code=1
+  ${gcloud_cmd} --config cloudbuild_benchmark.yaml --substitutions  "${substitutions}"
 fi
-
-exit ${exit_code}
