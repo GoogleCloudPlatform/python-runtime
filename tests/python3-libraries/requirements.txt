@@ -29,6 +29,7 @@ configobj==5.0.6
 cov-core==1.15.0
 coverage==4.4.1
 coveralls==1.2.0
+crcmod==1.7
 cryptography==2.1.1
 cssselect==1.0.1
 cython==0.27.1
