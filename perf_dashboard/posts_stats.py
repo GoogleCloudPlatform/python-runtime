@@ -25,9 +25,7 @@ from collections import Counter
 
 from google.cloud import bigquery
 
-# Need this to import the local helper function
-sys.path.insert(0, os.path.abspath(__file__+"/../../.."))
-from perf_dashboard import bq_utils
+import bq_utils
 
 GCLOUD_PROJECT_ENV = 'GCLOUD_PROJECT'
 DATASET_NAME = 'stackoverflow'

@@ -20,9 +20,7 @@ import uuid
 
 from google.cloud import bigquery
 
-sys.path.insert(0, os.path.abspath(__file__+"/../../.."))
-from perf_dashboard import bq_utils
-
+import bq_utils
 
 GCLOUD_PROJECT_ENV = 'GCLOUD_PROJECT'
 
@@ -136,7 +134,7 @@ def main():
             clientlibs_table_name=table_name,
             date_str=datetime.datetime.now().strftime("%Y%m%d"))
         bq_utils.insert_rows(
-            project=project,
+            project=os.environ.get(GCLOUD_PROJECT_ENV),
             dataset_name=DATASET_NAME,
             table_name=table_name,
             rows=rows)
