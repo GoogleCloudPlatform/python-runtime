@@ -1,0 +1,25 @@
+Package: ${DEB_PACKAGE_NAME}
+Version: ${DEB_PACKAGE_VERSION}
+Section: python
+Priority: optional
+Architecture: amd64
+Maintainer: Douglas Greiman <dgreiman@google.com>
+Description: Interactive high-level object-oriented language (version ${SHORT_VERSION})
+ Python is a high-level, interactive, object-oriented language. Its ${SHORT_VERSION} version
+ includes an extensive class library with lots of goodies for
+ network programming, system administration, sounds and graphics.
+Depends: libbz2-1.0,
+  libc6,
+  libdb5.3,
+  libexpat1,
+  libffi6,
+  liblzma5,
+  libmpdec2,
+  libncursesw5,
+  libreadline6,
+  libsqlite3-0,
+  libssl1.0.0,
+  libtinfo5,
+  mime-support,
+  zlib1g
+Homepage: https://www.python.org
