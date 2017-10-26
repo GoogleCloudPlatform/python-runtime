@@ -7,10 +7,7 @@ globalEnvVars:
     value: "/env/bin:$PATH"
 
 commandTests:
-  - name: "virtual env teardown"
-    command: ["rm", "-rf", "/env"]
-
   - name: "requirements"
     setup: [["virtualenv", "/env"]]
-    command: ["pip", "install", "-r", "/workspace/tests/python2-libraries/requirements.txt"]
+    command: ["pip", "install", "-r", "/requirements.txt"]
     exitCode: 0
