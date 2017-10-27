@@ -16,15 +16,18 @@ ENV LANG C.UTF-8
 # logging collection.
 ENV PYTHONUNBUFFERED 1
 
-# Upgrade pip (debian package version tends to run a few version behind) and
-# install virtualenv system-wide.
-RUN pip install --upgrade pip virtualenv
-
 # Install the Google-built interpreters
 ADD interpreters.tar.gz /
 
 # Add Google-built interpreters to the path
-ENV PATH /opt/python3.5/bin:/opt/python3.6/bin:$PATH
+ENV PATH /opt/python3.6/bin:/opt/python3.5/bin:$PATH
+
+# Upgrade pip (debian package version tends to run a few version behind) and
+# install virtualenv system-wide.
+RUN /usr/bin/pip install --upgrade -r /resources/requirements.txt && \
+    /usr/bin/pip3 install --upgrade -r /resources/requirements.txt && \
+    /opt/python3.5/bin/pip3.5 install --upgrade -r /resources/requirements.txt && \
+    /opt/python3.6/bin/pip3.6 install --upgrade -r /resources/requirements.txt
 
 # Setup the app working directory
 RUN ln -s /home/vmagent/app /app
