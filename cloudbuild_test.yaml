@@ -23,14 +23,14 @@ steps:
   ]
 - name: gcr.io/gcp-runtimes/container-structure-test:v0.1.1
   args: [
-    '-i', '${_DOCKER_NAMESPACE}/python:${_TAG}',
-    '--config', '/workspace/tests/virtualenv/virtualenv_default.yaml',
-    '--config', '/workspace/tests/virtualenv/virtualenv_python34.yaml',
-    '--config', '/workspace/tests/virtualenv/virtualenv_python35.yaml',
-    '--config', '/workspace/tests/virtualenv/virtualenv_python36.yaml',
-    '--config', '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
-    '--config', '/workspace/tests/license-test/license-test.yaml',
-    '-v'
+    '-test.v',
+    '-image', '${_DOCKER_NAMESPACE}/python:${_TAG}',
+    '/workspace/tests/virtualenv/virtualenv_default.yaml',
+    '/workspace/tests/virtualenv/virtualenv_python34.yaml',
+    '/workspace/tests/virtualenv/virtualenv_python35.yaml',
+    '/workspace/tests/virtualenv/virtualenv_python36.yaml',
+    '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
+    '/workspace/tests/license-test/license-test.yaml'
     ]
 - # Run compatibility tests
   name: gcr.io/cloud-builders/docker:latest
