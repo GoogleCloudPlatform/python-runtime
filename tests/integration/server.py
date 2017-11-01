@@ -34,6 +34,12 @@ log_funcs = {
     'CRITICAL': (logging.critical, 'stderr')
 }
 
+_APPENGINE_FLEXIBLE_ENV_VM = 'GAE_APPENGINE_HOSTNAME'
+"""Environment variable set in App Engine when vm:true is set."""
+
+_APPENGINE_FLEXIBLE_ENV_FLEX = 'GAE_INSTANCE'
+"""Environment variable set in App Engine when env:flex is set."""
+
 app = Flask(__name__)
 
 
@@ -236,13 +242,11 @@ def _custom():
 @app.route('/environment', methods=['GET'])
 def _check_environment():
     # determine what cloud env we're running in; essentially, GAE vs GKE
-    # for GAE, we'll check the existence of an env var starting with 'GAE_'
-    # if none exist, assume we're in GKE
-    env = os.environ
-    for k, v in env.iteritems():
-        if k.startswith('GAE_'):
-            return 'GAE', 200
-    return 'GKE', 200
+    # for GAE, we'll check the existence env vars set on
+    # vm:true or env:flex
+    # if neither exist, assume we're in GKE
+    return (_APPENGINE_FLEXIBLE_ENV_VM in os.environ or
+            _APPENGINE_FLEXIBLE_ENV_FLEX in os.environ), 200
 
 
 class ErrorResponse(Exception):
