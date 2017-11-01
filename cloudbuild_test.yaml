@@ -1,18 +1,36 @@
 timeout: 3600s
 steps:
-- # Validate structure of base runtime image
-  name: gcr.io/gcp-runtimes/structure_test:latest
+ # Validate structure of base runtime image
+- name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '-t', 'python2-libraries-intermediate', '--build-arg', 
+         'intermediate_image=${_DOCKER_NAMESPACE}/python:${_TAG}',
+         '/workspace/tests/python2-libraries']
+- name: gcr.io/gcp-runtimes/container-structure-test:v0.1.1
   args: [
-    '-i', '${_DOCKER_NAMESPACE}/python:${_TAG}',
-    '--config', '/workspace/tests/virtualenv/virtualenv_default.yaml',
-    '--config', '/workspace/tests/virtualenv/virtualenv_python34.yaml',
-    '--config', '/workspace/tests/virtualenv/virtualenv_python35.yaml',
-    '--config', '/workspace/tests/virtualenv/virtualenv_python36.yaml',
-    '--config', '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
-    '--config', '/workspace/tests/python2-libraries/python2-libraries.yaml',
-    '--config', '/workspace/tests/python3-libraries/python3-libraries.yaml',
-    '--config', '/workspace/tests/license-test/license-test.yaml',
-    '-v'
+    '-test.v',
+    '-image', 'python2-libraries-intermediate',
+    '/workspace/tests/python2-libraries/python2-libraries.yaml'
+  ]
+- name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '-t', 'python3-libraries-intermediate', '--build-arg', 
+         'intermediate_image=${_DOCKER_NAMESPACE}/python:${_TAG}',
+         '/workspace/tests/python3-libraries']
+- name: gcr.io/gcp-runtimes/container-structure-test:v0.1.1
+  args: [
+    '-test.v',
+    '-image', 'python3-libraries-intermediate',
+    '/workspace/tests/python3-libraries/python3-libraries.yaml'
+  ]
+- name: gcr.io/gcp-runtimes/container-structure-test:v0.1.1
+  args: [
+    '-test.v',
+    '-image', '${_DOCKER_NAMESPACE}/python:${_TAG}',
+    '/workspace/tests/virtualenv/virtualenv_default.yaml',
+    '/workspace/tests/virtualenv/virtualenv_python34.yaml',
+    '/workspace/tests/virtualenv/virtualenv_python35.yaml',
+    '/workspace/tests/virtualenv/virtualenv_python36.yaml',
+    '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
+    '/workspace/tests/license-test/license-test.yaml'
     ]
 - # Run compatibility tests
   name: gcr.io/cloud-builders/docker:latest
@@ -24,5 +42,4 @@ steps:
          '--no-cache', '/workspace/tests/google-cloud-python/']
 - # Run google client library unit tests
   name: ${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}
-images: [
-]
+images: []

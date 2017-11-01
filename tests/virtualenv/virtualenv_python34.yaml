@@ -7,9 +7,6 @@ globalEnvVars:
     value: "/env/bin:$PATH"
 
 commandTests:
-  - name: "virtual env teardown"
-    command: ["rm", "-rf", "/env"]
-
   - name: "python installation"
     command: ["which", "python3.4"]
     expectedOutput: ["/usr/bin/python3.4\n"]
@@ -20,23 +17,27 @@ commandTests:
     expectedOutput: ["/env/bin/python\n"]
 
   - name: "virtualenv python3 installation"
+    setup: [["virtualenv", "-p", "python3.4", "/env"]]
     command: ["which", "python3"]
     expectedOutput: ["/env/bin/python3\n"]
 
   - name: "python version"
+    setup: [["virtualenv", "-p", "python3.4", "/env"]]
     command: ["python", "--version"]
     expectedOutput: ["Python 3.4.2\n"]
 
   - name: "pip installation"
+    setup: [["virtualenv", "-p", "python3.4", "/env"]]
     command: ["which", "pip"]
     expectedOutput: ["/env/bin/pip\n"]
 
   - name: "pip3 installation"
+    setup: [["virtualenv", "-p", "python3.4", "/env"]]
     command: ["which", "pip3"]
     expectedOutput: ["/env/bin/pip3\n"]
 
   - name: "gunicorn flask"
-    setup: [["pip", "install", "gunicorn", "flask"]]
+    setup: [["virtualenv", "-p", "python3.4", "/env"], ["pip", "install", "gunicorn", "flask"]]
     command: ["which", "gunicorn"]
     expectedOutput: ["/env/bin/gunicorn"]
 
