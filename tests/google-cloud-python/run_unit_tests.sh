@@ -8,10 +8,10 @@ for noxfile in */nox.py; do
   nox \
     -f "${noxfile}" \
     -e \
-    "unit_tests(python_version='2.7')" \
-    "unit_tests(python_version='3.4')" \
-    "unit_tests(python_version='3.5')" \
-    "unit_tests(python_version='3.6')" \
+    "unit(py='2.7')" \
+    "unit(py='3.4')" \
+    "unit(py='3.5')" \
+    "unit(py='3.6')" \
     || exit_code=1
 done
 

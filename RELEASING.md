@@ -67,6 +67,15 @@ following:
 docker run -it --entrypoint /bin/bash YOUR-IMAGE-NAME
 ```
 
+## Running tests against a released image
+
+To run compatibility tests against an existing image, such as
+`gcr.io/google-appengine/python:latest`, run:
+
+```shell
+DOCKER_NAMESPACE=gcr.io/google-appengine TAG=latest ./build.sh --nobuild --test
+```
+
 ## Running benchmarks
 
 There is a benchmark suite which compares the performance of interpreters
