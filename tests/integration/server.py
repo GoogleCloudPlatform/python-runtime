@@ -17,6 +17,7 @@
 from functools import wraps
 import json
 import logging
+import os
 
 import google.cloud.logging
 import google.cloud.monitoring
@@ -32,6 +33,12 @@ log_funcs = {
     'ERROR': (logging.error, 'stderr'),
     'CRITICAL': (logging.critical, 'stderr')
 }
+
+_APPENGINE_FLEXIBLE_ENV_VM = 'GAE_APPENGINE_HOSTNAME'
+"""Environment variable set in App Engine when vm:true is set."""
+
+_APPENGINE_FLEXIBLE_ENV_FLEX = 'GAE_INSTANCE'
+"""Environment variable set in App Engine when env:flex is set."""
 
 app = Flask(__name__)
 
@@ -132,6 +139,7 @@ def _log_default(token, level):
         logging.error('Error while writing logs: {0}'.format(e))
         raise ErrorResponse('Error while writing logs: {0}'.format(e))
 
+    # this is fine regardless of environment, it's only used in GAE logs
     return 'appengine.googleapis.com%2F{0}'.format(source)
 
 
@@ -229,6 +237,16 @@ def _custom():
         }
     ]
     return json.dumps(tests), 200
+
+
+@app.route('/environment', methods=['GET'])
+def _check_environment():
+    # determine what cloud env we're running in; essentially, GAE vs GKE
+    # for GAE, we'll check the existence env vars set on
+    # vm:true or env:flex
+    # if neither exist, assume we're in GKE
+    return (_APPENGINE_FLEXIBLE_ENV_VM in os.environ or
+            _APPENGINE_FLEXIBLE_ENV_FLEX in os.environ), 200
 
 
 class ErrorResponse(Exception):

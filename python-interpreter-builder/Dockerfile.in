@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -yq \
     debhelper \
     dpkg-dev \
     gcc \
+    gettext-base \
     libbluetooth-dev \
     libbz2-dev \
     libdb-dev \
@@ -43,10 +44,17 @@ ENV LANG C.UTF-8
 
 # Add build scripts
 ADD scripts /scripts
+ADD DEBIAN /DEBIAN
 
 # Build the Python interpreters
-RUN /scripts/build-python-3.5.sh
-RUN /scripts/build-python-3.6.sh
+RUN mkdir -p /opt/packages && \
+    echo -n "" > /opt/packages/packages.txt
+
+RUN /scripts/build-python-3.5.sh && \
+    /scripts/package-python.sh 3.5.4 "1gcp~${TAG}"
+
+RUN /scripts/build-python-3.6.sh && \
+    /scripts/package-python.sh 3.6.2 "1gcp~${TAG}"
 
 # Tar the interpreters. Tarring is needed because docker cp doesn't handle
 # links correctly.
