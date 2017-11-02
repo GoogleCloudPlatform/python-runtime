@@ -7,12 +7,13 @@ globalEnvVars:
     value: "/env/bin:$PATH"
 
 commandTests:
-  - name: "virtual env teardown"
-    command: ["rm", "-rf", "/env"]
-
   - name: "python installation"
     command: ["which", "python"]
     expectedOutput: ["/usr/bin/python\n"]
+
+  - name: "pip installation"
+    command: ["which", "pip"]
+    expectedOutput: ["/usr/local/bin/pip\n"]
 
   - name: "virtualenv installation"
     setup: [["virtualenv", "/env"]]
@@ -25,12 +26,13 @@ commandTests:
     # https://bugs.python.org/issue18338
     expectedError: ["Python 2.7.9\n"]
 
-  - name: "pip installation"
+  - name: "virtualenv pip installation"
+    setup: [["virtualenv", "/env"]]
     command: ["which", "pip"]
     expectedOutput: ["/env/bin/pip\n"]
 
-  - name: "gunicorn flask"
-    setup: [["pip", "install", "gunicorn", "flask"]]
+  - name: "virtualenv gunicorn flask"
+    setup: [["virtualenv", "/env"], ["pip", "install", "gunicorn", "flask"]]
     command: ["which", "gunicorn"]
     expectedOutput: ["/env/bin/gunicorn"]
       
