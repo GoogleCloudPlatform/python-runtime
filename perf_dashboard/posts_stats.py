@@ -70,7 +70,6 @@ def get_posts_list_unanswered():
 
     # Add current timestamp to the rows
     date_time = datetime.datetime.now()
-
     rows = [(date_time,) + row for row in results]
 
     return rows
