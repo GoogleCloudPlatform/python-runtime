@@ -111,14 +111,8 @@ def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
     job_config.query_parameters = query_parameters
     query_job = client.query(query, job_config=job_config)
 
-    # Start the query job and wait it to complete
-    data = query_job.result()
-
-    # Get the results
-    results = []
-
-    for row in data:
-        results.append(row.values())
+    # Wait for the job to complete and get the results
+    results = [row.values() for row in query_job.result()]
 
     rows = [(date_time,) + row for row in results]
 

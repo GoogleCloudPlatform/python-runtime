@@ -33,11 +33,4 @@ def execute_query(query):
     query_job = client.query((query))
 
     # Start the query job and wait it to complete
-    data = query_job.result()
-
-    results = []
-
-    for row in data:
-        results.append(row.values())
-
-    return results
+    return [row.values() for row in query_job.result()]
