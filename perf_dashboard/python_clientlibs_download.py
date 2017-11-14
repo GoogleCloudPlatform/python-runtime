@@ -101,27 +101,24 @@ def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
             GROUP BY client_library_name
         """
     client = bigquery.Client()
-    query_job = client.run_async_query(
-        str(uuid.uuid4()),
-        query,
-        query_parameters=(
-            bigquery.ArrayQueryParameter(
-                'client_libs', 'STRING',
-                client_libs),
-            bigquery.ArrayQueryParameter(
-                'week_dates', 'STRING',
-                week_dates)
-        ))
-    query_job.use_legacy_sql = False
+    query_parameters=[
+        bigquery.ArrayQueryParameter(
+            'client_libs', 'STRING', client_libs),
+        bigquery.ArrayQueryParameter(
+            'week_dates', 'STRING', week_dates)
+    ]
+    job_config = bigquery.QueryJobConfig()
+    job_config.query_parameters = query_parameters
+    query_job = client.query(query, job_config=job_config)
 
     # Start the query job and wait it to complete
-    query_job.begin()
-    query_job.result()
+    data = query_job.result()
 
     # Get the results
-    destination_table = query_job.destination
-    destination_table.reload()
-    results = destination_table.fetch_data()
+    results = []
+
+    for row in data:
+        results.append(row._xxx_values)
 
     rows = [(date_time,) + row for row in results]
 
