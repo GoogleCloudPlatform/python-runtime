@@ -7,50 +7,48 @@ globalEnvVars:
     value: "/env/bin:$PATH"
 
 commandTests:
-  - name: "virtual env teardown"
-    command: ["rm", "-rf", "/env"]
-
-  - name: "python installation"
-    command: ["which", "python3.5"]
-    expectedOutput: ["/opt/python3.5/bin/python3.5\n"]
-
-  - name: "virtualenv python installation"
+  - name: "virtualenv35 python installation"
     setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["which", "python"]
     expectedOutput: ["/env/bin/python\n"]
 
-  - name: "virtualenv python3 installation"
+  - name: "virtualenv35 python3 installation"
     setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["which", "python3"]
     expectedOutput: ["/env/bin/python3\n"]
 
-  - name: "virtualenv python3.5 installation"
+  - name: "virtualenv35 python3.5 installation"
     setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["which", "python3.5"]
     expectedOutput: ["/env/bin/python3.5\n"]
 
-  - name: "python version"
+  - name: "virtualenv35 python version"
     setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["python", "--version"]
     expectedOutput: ["Python 3.5.4\n"]
 
-  - name: "pip installation"
+  - name: "virtualenv35 pip installation"
     setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["which", "pip"]
     expectedOutput: ["/env/bin/pip\n"]
 
-  - name: "pip3 installation"
+  - name: "virtualenv35 pip3 installation"
     setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["which", "pip3"]
     expectedOutput: ["/env/bin/pip3\n"]
 
-  - name: "gunicorn flask"
-    setup: [["virtualenv", "-p", "python3.5", "/env"], ["pip", "install", "gunicorn", "flask"]]
+  - name: "virtualenv35 gunicorn installation"
+    setup: [["virtualenv", "-p", "python3.5", "/env"],
+            ["pip", "install", "gunicorn"]]
     command: ["which", "gunicorn"]
     expectedOutput: ["/env/bin/gunicorn"]
 
-  - name: "flask integration"
-    command: ["python", "-c", "\"import sys; import flask; sys.exit(0 if flask.__file__.startswith('/env') else 1)\""]
+  - name: "virtualenv35 flask installation"
+    setup: [["virtualenv", "-p", "python3.5", "/env"],
+            ["pip", "install", "flask"]]
+    command: ["python", "-c", "import flask; print(flask.__file__)"]
+    expectedOutput: ["/env/lib/python3.5/site-packages/flask"]
 
-  - name: "test.support"
+  - name: "virtualenv35 test.support availability"
+    setup: [["virtualenv", "-p", "python3.5", "/env"]]
     command: ["python", "-c", "\"from test import pystone, regrtest, support\""]

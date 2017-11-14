@@ -26,6 +26,7 @@ steps:
     '-test.v',
     '-image', '${_DOCKER_NAMESPACE}/python:${_TAG}',
     '/workspace/tests/virtualenv/virtualenv_default.yaml',
+    '/workspace/tests/virtualenv/virtualenv_python27.yaml',
     '/workspace/tests/virtualenv/virtualenv_python34.yaml',
     '/workspace/tests/virtualenv/virtualenv_python35.yaml',
     '/workspace/tests/virtualenv/virtualenv_python36.yaml',

@@ -7,20 +7,13 @@ globalEnvVars:
     value: "/env/bin:$PATH"
 
 commandTests:
-  - name: "python installation"
-    command: ["which", "python"]
-    expectedOutput: ["/usr/bin/python\n"]
-
-  - name: "pip installation"
-    command: ["which", "pip"]
-    expectedOutput: ["/usr/local/bin/pip\n"]
-
-  - name: "virtualenv installation"
+  - name: "virtualenv python installation"
     setup: [["virtualenv", "/env"]]
     command: ["which", "python"]
     expectedOutput: ["/env/bin/python\n"]
 
-  - name: "python version"
+  - name: "virtualenv python version"
+    setup: [["virtualenv", "/env"]]
     command: ["python", "--version"]
     # we check stderr instead of stdout for Python versions < 3.4
     # https://bugs.python.org/issue18338
@@ -31,10 +24,14 @@ commandTests:
     command: ["which", "pip"]
     expectedOutput: ["/env/bin/pip\n"]
 
-  - name: "virtualenv gunicorn flask"
-    setup: [["virtualenv", "/env"], ["pip", "install", "gunicorn", "flask"]]
+  - name: "virtualenv gunicorn installation"
+    setup: [["virtualenv", "/env"],
+            ["pip", "install", "gunicorn"]]
     command: ["which", "gunicorn"]
     expectedOutput: ["/env/bin/gunicorn"]
       
-  - name: "flask integration"
-    command: ["python", "-c", "\"import sys; import flask; sys.exit(0 if flask.__file__.startswith('/env') else 1)\""]
+  - name: "virtualenv flask installation"
+    setup: [["virtualenv", "/env"],
+            ["pip", "install", "flask"]]
+    command: ["python", "-c", "import flask; print(flask.__file__)"]
+    expectedOutput: ["/usr/local/lib/python2.7/dist-packages/flask"]

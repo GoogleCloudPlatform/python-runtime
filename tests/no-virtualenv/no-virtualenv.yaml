@@ -4,7 +4,41 @@ commandTests:
     command: ["which", "python"]
     expectedOutput: ["/usr/bin/python\n"]
 
+  - name: "default pip installation"
+    command: ["which", "pip"]
+    expectedOutput: ["/usr/local/bin/pip\n"]
+
+  - name: "default pip python version"
+    command: ["pip", "-V"]
+    expectedOutput: ["pip .* from .* (python 2.7)"]
+
+  - name: "default virtualenv installation"
+    command: ["which", "virtualenv"]
+    expectedOutput: ["/usr/local/bin/virtualenv\n"]
+
+  - name: "default python2.7 installation"
+    command: ["which", "python2.7"]
+    expectedOutput: ["/usr/bin/python2.7\n"]
+
+  - name: "default python3.4 installation"
+    command: ["which", "python3.4"]
+    expectedOutput: ["/usr/bin/python3.4\n"]
+
+  - name: "default python3.5 installation"
+    command: ["which", "python3.5"]
+    expectedOutput: ["/opt/python3.5/bin/python3.5\n"]
+
+  - name: "default python3.6 installation"
+    command: ["which", "python3.6"]
+    expectedOutput: ["/opt/python3.6/bin/python3.6\n"]
+
   - name: "default gunicorn installation"
     setup: [["pip", "install", "gunicorn"]]
     command: ["which", "gunicorn"]
     expectedOutput: ["/usr/local/bin/gunicorn\n"]
+
+  - name: "default flask installation"
+    # Checks that 'pip' and 'python' are using the same Python version
+    setup: [["pip", "install", "flask"]]
+    command: ["python", "-c", "import flask; print(flask.__file__)"]
+    expectedOutput: ["/usr/local/lib/python2.7/dist-packages/flask"]
