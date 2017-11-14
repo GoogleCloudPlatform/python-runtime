@@ -118,7 +118,7 @@ def get_weekly_clientlibs_downloads(clientlibs_table_name, date_str):
     results = []
 
     for row in data:
-        results.append(row._xxx_values)
+        results.append(row.values())
 
     rows = [(date_time,) + row for row in results]
 

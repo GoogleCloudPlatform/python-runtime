@@ -38,6 +38,6 @@ def execute_query(query):
     results = []
 
     for row in data:
-        results.append(row._xxx_values)
+        results.append(row.values())
 
     return results
