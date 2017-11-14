@@ -98,7 +98,6 @@ def main():
 
     # Get the list of unanswered posts
     unanswered_posts = get_posts_list_unanswered()
-    print(unanswered_posts)
     bq_utils.insert_rows(
         project, DATASET_NAME, UNANSWERED_POSTS_TABLE_NAME, unanswered_posts)
 
