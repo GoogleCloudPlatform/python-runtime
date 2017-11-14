@@ -27,7 +27,8 @@ ENV PATH /opt/python3.6/bin:/opt/python3.5/bin:$PATH
 RUN /usr/bin/pip install --upgrade -r /resources/requirements.txt && \
     /usr/bin/pip3 install --upgrade -r /resources/requirements.txt && \
     /opt/python3.5/bin/pip3.5 install --upgrade -r /resources/requirements.txt && \
-    /opt/python3.6/bin/pip3.6 install --upgrade -r /resources/requirements.txt
+    /opt/python3.6/bin/pip3.6 install --upgrade -r /resources/requirements.txt && \
+    /usr/bin/pip install --upgrade -r /resources/requirements-virtualenv.txt
 
 # Setup the app working directory
 RUN ln -s /home/vmagent/app /app
