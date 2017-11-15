@@ -10,7 +10,7 @@ commandTests:
 
   - name: "default pip python version"
     command: ["pip", "-V"]
-    expectedOutput: ["pip .* from .* (python 2.7)"]
+    expectedOutput: ["pip .* from .*python 2[.]7"]
 
   - name: "default virtualenv installation"
     command: ["which", "virtualenv"]
