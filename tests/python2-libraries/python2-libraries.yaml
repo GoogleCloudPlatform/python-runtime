@@ -8,6 +8,6 @@ globalEnvVars:
 
 commandTests:
   - name: "requirements"
-    setup: [["virtualenv", "/env"]]
+    setup: [["virtualenv", "-p", "python", "/env"]]
     command: ["pip", "install", "-r", "/requirements.txt"]
     exitCode: 0

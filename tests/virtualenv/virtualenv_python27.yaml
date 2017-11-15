@@ -1,0 +1,47 @@
+schemaVersion: "1.0.0"
+
+globalEnvVars:
+  - key: "VIRTUAL_ENV"
+    value: "/env"
+  - key: "PATH"
+    value: "/env/bin:$PATH"
+
+commandTests:
+  - name: "virtualenv27 python installation"
+    setup: [["virtualenv", "-p", "python", "/env"]]
+    command: ["which", "python"]
+    expectedOutput: ["/env/bin/python\n"]
+
+  - name: "virtualenv27 python2 installation"
+    setup: [["virtualenv", "-p", "python", "/env"]]
+    command: ["which", "python2"]
+    expectedOutput: ["/env/bin/python2\n"]
+
+  - name: "virtualenv27python2.7 installation"
+    setup: [["virtualenv", "-p", "python", "/env"]]
+    command: ["which", "python2.7"]
+    expectedOutput: ["/env/bin/python2.7\n"]
+
+  - name: "virtualenv27 python version"
+    setup: [["virtualenv", "-p", "python", "/env"]]
+    command: ["python", "--version"]
+    # we check stderr instead of stdout for Python versions < 3.4
+    # https://bugs.python.org/issue18338
+    expectedError: ["Python 2.7.9\n"]
+
+  - name: "virtualenv27 pip installation"
+    setup: [["virtualenv", "-p", "python", "/env"]]
+    command: ["which", "pip"]
+    expectedOutput: ["/env/bin/pip\n"]
+
+  - name: "virtualenv27 gunicorn installation"
+    setup: [["virtualenv", "-p", "python", "/env"],
+            ["pip", "install", "gunicorn"]]
+    command: ["which", "gunicorn"]
+    expectedOutput: ["/env/bin/gunicorn"]
+
+  - name: "virtualenv27 flask installation"
+    setup: [["virtualenv", "-p", "python", "/env"],
+            ["pip", "install", "flask"]]
+    command: ["python", "-c", "import flask; print(flask.__file__)"]
+    expectedOutput: ["/env/local/lib/python2.7/site-packages/flask"]
