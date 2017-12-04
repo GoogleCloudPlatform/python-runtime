@@ -31,8 +31,8 @@ for package in ${packages}; do
   nox \
     -f "${noxfile}" \
     -e \
-    "system_tests(python_version='2.7')" \
-    "system_tests(python_version='3.6')" \
+    "system(py='2.7')" \
+    "system(py='3.6')" \
     || exit_code=1
 done
 
