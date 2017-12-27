@@ -1,0 +1,25 @@
+service: default
+runtime: custom
+env: flex
+
+api_version: 1
+threadsafe: true
+
+beta_settings:
+  enable_app_engine_apis: true # Needed for compat apps.
+  # allow_ssh: true
+  # auto_restart: false
+  # use_regional: false
+  # image: canary
+  # image: projects/goog-vmruntime-images/global/images/debian-7-wheezy-v2016-06-27a
+
+resources:
+  cpu: 1
+  memory_gb: 1.3
+
+manual_scaling:
+  instances: 2
+
+handlers:
+- url: .*
+  script: main.app

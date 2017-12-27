@@ -29,6 +29,13 @@ import yaml
 
 import validation_utils
 
+# Dockerfile for the python-compat runtime.
+# NOTE: This runtime is deprecated, and will ultimately be removed.
+COMPAT_DOCKERFILE = """
+FROM gcr.io/google_appengine/python-compat-multicore
+ADD . /app/
+RUN if [ -s requirements.txt ]; then pip install -r requirements.txt; fi
+"""
 
 # Validate characters for dockerfile image names.
 #
@@ -204,12 +211,17 @@ def generate_dockerfile_command(base_image, config_file, source_dir):
     with io.open(config_file, 'r', encoding='utf8') as yaml_config_file:
         raw_config = yaml.safe_load(yaml_config_file)
 
-    # Determine complete configuration
-    app_config = get_app_config(raw_config, base_image, config_file,
-                                source_dir)
+    # Short circuit for python compat.
+    if validation_utils.get_field_value(
+        raw_runtime_config, 'runtime_id', str) == 'python-compat':
+      files = {'Dockerfile': COMPAT_DOCKERFILE}
+    else:
+      # Determine complete configuration
+      app_config = get_app_config(raw_config, base_image, config_file,
+                                  source_dir)
 
-    # Generate list of filenames and their textual contents
-    files = generate_files(app_config)
+      # Generate list of filenames and their textual contents
+      files = generate_files(app_config)
 
     # Write files
     for filename, contents in files.items():
