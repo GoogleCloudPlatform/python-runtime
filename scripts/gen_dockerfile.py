@@ -213,8 +213,9 @@ def generate_dockerfile_command(base_image, config_file, source_dir):
 
     # Short circuit for python compat.
     if validation_utils.get_field_value(
-        raw_runtime_config, 'runtime_id', str) == 'python-compat':
-      files = {'Dockerfile': COMPAT_DOCKERFILE}
+        raw_config, 'runtime_id', str) == 'python-compat':
+      files = {'Dockerfile': COMPAT_DOCKERFILE,
+               '.dockerignore': get_data('dockerignore'),}
     else:
       # Determine complete configuration
       app_config = get_app_config(raw_config, base_image, config_file,
