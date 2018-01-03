@@ -245,8 +245,11 @@ def _check_environment():
     # for GAE, we'll check the existence env vars set on
     # vm:true or env:flex
     # if neither exist, assume we're in GKE
-    return (_APPENGINE_FLEXIBLE_ENV_VM in os.environ or
-            _APPENGINE_FLEXIBLE_ENV_FLEX in os.environ), 200
+    environment = "GKE"
+    if (_APPENGINE_FLEXIBLE_ENV_VM in os.environ or
+        _APPENGINE_FLEXIBLE_ENV_FLEX in os.environ):
+        environment = "GAE"
+    return environment, 200
 
 
 class ErrorResponse(Exception):
