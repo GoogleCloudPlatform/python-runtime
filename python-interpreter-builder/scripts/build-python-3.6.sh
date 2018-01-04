@@ -123,7 +123,8 @@ make profile-opt
 # test_dbm: https://bugs.python.org/issue28700
 # test_imap: https://bugs.python.org/issue30175
 # test_shutil: https://bugs.python.org/issue29317
-make test TESTOPTS="--exclude test___all__ test_dbm test_imaplib test_shutil"
+# test_xmlrpc_net: https://bugs.python.org/issue31724
+make test TESTOPTS="--exclude test___all__ test_dbm test_imaplib test_shutil test_xmlrpc_net"
 
 # Install
 make altinstall
