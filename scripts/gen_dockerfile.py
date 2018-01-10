@@ -29,14 +29,6 @@ import yaml
 
 import validation_utils
 
-# Dockerfile for the python-compat runtime.
-# NOTE: This runtime is deprecated, and will ultimately be removed.
-COMPAT_DOCKERFILE = """
-FROM gcr.io/google_appengine/python-compat-multicore
-ADD . /app/
-RUN if [ -s requirements.txt ]; then pip install -r requirements.txt; fi
-"""
-
 # Validate characters for dockerfile image names.
 #
 # This roots out obvious mistakes, the full gory details are here:
@@ -70,7 +62,7 @@ GAE_APPLICATION_YAML_PATH = 'GAE_APPLICATION_YAML_PATH'
 # Validated application configuration
 AppConfig = collections.namedtuple(
     'AppConfig',
-    'base_image dockerfile_python_version entrypoint has_requirements_txt'
+    'base_image dockerfile_python_version entrypoint has_requirements_txt, is_python_compat'
 )
 
 
@@ -103,6 +95,16 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
         raise ValueError(
             'Expected {} contents to be a Mapping type, but found type "{}"'.
             format(config_file, type(raw_config)))
+
+    # Short circuit for python compat.
+    if validation_utils.get_field_value(
+        raw_config, 'runtime', str) == 'python-compat':
+      return AppConfig(
+          base_image=None,
+          dockerfile_python_version=None,
+          entrypoint=None,
+          has_requirements_txt=None,
+          is_python_compat=True)
 
     entrypoint = validation_utils.get_field_value(
         raw_config, 'entrypoint', str)
@@ -140,7 +142,8 @@ def get_app_config(raw_config, base_image, config_file, source_dir):
         base_image=base_image,
         dockerfile_python_version=dockerfile_python_version,
         entrypoint=entrypoint,
-        has_requirements_txt=has_requirements_txt)
+        has_requirements_txt=has_requirements_txt,
+        is_python_compat=False)
 
 
 def get_data(name):
@@ -182,19 +185,24 @@ def generate_files(app_config):
     else:
         optional_entrypoint = ''
 
-    dockerfile = ''.join([
-        get_data('Dockerfile.preamble.template').format(
-            base_image=app_config.base_image),
-        get_data('Dockerfile.virtualenv.template').format(
-            python_version=app_config.dockerfile_python_version),
-        optional_requirements_txt,
-        get_data('Dockerfile.install_app'),
-        optional_entrypoint,
-    ])
+    if app_config.is_python_compat:
+      dockerfile = get_data('Dockerfile.python_compat')
+      dockerignore =  get_data('dockerignore.python_compat')
+    else:
+      dockerfile = ''.join([
+          get_data('Dockerfile.preamble.template').format(
+              base_image=app_config.base_image),
+          get_data('Dockerfile.virtualenv.template').format(
+              python_version=app_config.dockerfile_python_version),
+          optional_requirements_txt,
+          get_data('Dockerfile.install_app'),
+          optional_entrypoint,
+      ])
+      dockerignore =  get_data('dockerignore')
 
     return {
         'Dockerfile': dockerfile,
-        '.dockerignore': get_data('dockerignore'),
+        '.dockerignore': dockerignore,
     }
 
 
@@ -211,18 +219,12 @@ def generate_dockerfile_command(base_image, config_file, source_dir):
     with io.open(config_file, 'r', encoding='utf8') as yaml_config_file:
         raw_config = yaml.safe_load(yaml_config_file)
 
-    # Short circuit for python compat.
-    if validation_utils.get_field_value(
-        raw_config, 'runtime_id', str) == 'python-compat':
-      files = {'Dockerfile': COMPAT_DOCKERFILE,
-               '.dockerignore': get_data('dockerignore'),}
-    else:
-      # Determine complete configuration
-      app_config = get_app_config(raw_config, base_image, config_file,
+    # Determine complete configuration
+    app_config = get_app_config(raw_config, base_image, config_file,
                                   source_dir)
 
-      # Generate list of filenames and their textual contents
-      files = generate_files(app_config)
+    # Generate list of filenames and their textual contents
+    files = generate_files(app_config)
 
     # Write files
     for filename, contents in files.items():
