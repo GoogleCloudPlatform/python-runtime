@@ -62,7 +62,7 @@ GAE_APPLICATION_YAML_PATH = 'GAE_APPLICATION_YAML_PATH'
 # Validated application configuration
 AppConfig = collections.namedtuple(
     'AppConfig',
-    'base_image dockerfile_python_version entrypoint has_requirements_txt, is_python_compat'
+    'base_image dockerfile_python_version entrypoint has_requirements_txt is_python_compat'
 )
 
 
@@ -187,7 +187,7 @@ def generate_files(app_config):
 
     if app_config.is_python_compat:
       dockerfile = get_data('Dockerfile.python_compat')
-      dockerignore =  get_data('dockerignore.python_compat')
+      dockerignore = get_data('dockerignore.python_compat')
     else:
       dockerfile = ''.join([
           get_data('Dockerfile.preamble.template').format(
