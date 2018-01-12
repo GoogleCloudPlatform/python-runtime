@@ -54,6 +54,14 @@ def compare_file(filename, dir1, dir2):
         'dockerfile_python_version': '',
         'has_requirements_txt': False,
         'entrypoint': '',
+        'is_python_compat': False,
+    }),
+    ('env: flex\nruntime: python-compat', {
+        'base_image': None,
+        'dockerfile_python_version': None,
+        'has_requirements_txt': None,
+        'entrypoint': None,
+        'is_python_compat': True,
     }),
     # All supported python versions
     ('runtime_config:\n python_version:', {
@@ -125,7 +133,8 @@ _BASE_APP_CONFIG = gen_dockerfile.AppConfig(
     base_image='',
     dockerfile_python_version='',
     entrypoint='',
-    has_requirements_txt=False
+    has_requirements_txt=False,
+    is_python_compat=False,
 )
 
 
@@ -146,6 +155,9 @@ _BASE_APP_CONFIG = gen_dockerfile.AppConfig(
     # Python version
     (_BASE_APP_CONFIG._replace(dockerfile_python_version='_my_version'), True,
      'python_version=python_my_version'),
+    # python-compat runtime
+    (_BASE_APP_CONFIG._replace(is_python_compat=True), True,
+     'FROM gcr.io/google_appengine/python-compat-multicore'),
 ])
 def test_generate_files(app_config, should_find, test_string):
     result = gen_dockerfile.generate_files(app_config)
@@ -163,10 +175,13 @@ def compare_against_golden_files(app, config_dir, testdata_dir):
         compare_file(filename, config_dir, golden_dir)
 
 
-def test_generate_dockerfile_command(tmpdir, testdata_dir):
+@pytest.mark.parametrize('app', [
+    # Sampled from https://github.com/GoogleCloudPlatform/python-docs-samples
+    'hello_world',
+    # From an internal source.
+    'hello_world_compat'])
+def test_generate_dockerfile_command(tmpdir, testdata_dir, app):
     """Generates output and compares against a set of golden files."""
-    # Sample from https://github.com/GoogleCloudPlatform/python-docs-samples
-    app = 'hello_world'
     app_dir = os.path.join(testdata_dir, app)
 
     # Copy sample app to writable temp dir, and generate Dockerfile.
@@ -179,12 +194,15 @@ def test_generate_dockerfile_command(tmpdir, testdata_dir):
     compare_against_golden_files(app, config_dir, testdata_dir)
 
 
+@pytest.mark.parametrize('app', [
+    # Sampled from https://github.com/GoogleCloudPlatform/python-docs-samples
+    'hello_world',
+    # From an internal source.
+    'hello_world_compat'])
 @pytest.mark.xfail(not shutil.which('gcloud'),
                    reason='Google Cloud SDK is not installed')
-def test_generate_dockerfile_golden(tmpdir, testdata_dir):
+def test_generate_dockerfile_golden(tmpdir, testdata_dir, app):
     """Validate our golden files against gcloud app gen-config"""
-    # Sample from https://github.com/GoogleCloudPlatform/python-docs-samples
-    app = 'hello_world'
     app_dir = os.path.join(testdata_dir, app)
 
     # Copy sample app to writable temp dir, and generate Dockerfile.

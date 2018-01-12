@@ -1,0 +1,13 @@
+service: default
+runtime: python-compat
+env: flex
+
+api_version: 1
+threadsafe: true
+
+beta_settings:
+  enable_app_engine_apis: true # Needed for compat apps.
+
+handlers:
+- url: .*
+  script: main.app
