@@ -155,7 +155,7 @@ _BASE_APP_CONFIG = gen_dockerfile.AppConfig(
     # Python version
     (_BASE_APP_CONFIG._replace(dockerfile_python_version='_my_version'), True,
      'python_version=python_my_version'),
-    # Python version
+    # python-compat runtime
     (_BASE_APP_CONFIG._replace(is_python_compat=True), True,
      'FROM gcr.io/google_appengine/python-compat-multicore'),
 ])
