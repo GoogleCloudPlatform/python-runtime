@@ -5,7 +5,7 @@ This repository contains the source for the
 [docker](https://docker.io) base image. This image can be used as the base image
 for running applications on
 [Google App Engine Flexible](https://cloud.google.com/appengine/docs/flexible/),
-[Google Container Engine](https://cloud.google.com/container-engine), or any
+[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine), or any
 other Docker host.
 
 This image is based on Debian Jessie and contains packages required to build
@@ -38,7 +38,7 @@ to create a custom runtime:
 You can then modify the `Dockerfile` and `.dockerignore` as needed for you
 application.
 
-## Container Engine & other Docker hosts.
+## Kubernetes Engine & other Docker hosts.
   
 For other docker hosts, you'll need to create a `Dockerfile` based on this image
 that copies your application code, installs dependencies, and declares an
