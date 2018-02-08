@@ -18,7 +18,7 @@ blinker==1.4
 boto==2.48.0
 botocore==1.8.36
 bottle==0.12.13
-carbon==1.1.1
+carbon<1.1.1
 celery==4.1.0
 certifi==2018.1.18
 cffi==1.11.4
@@ -39,7 +39,7 @@ decorator==4.2.1
 django-celery==3.2.2
 django-debug-toolbar==1.9.1
 django-extensions==1.9.9
-django==2.0.2
+django<2.0
 django_compress==1.0.1
 djangorestframework==3.7.7
 docker-py==1.10.6
