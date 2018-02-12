@@ -6,14 +6,14 @@ set -x
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.5.4/Python-3.5.4.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.5.5/Python-3.5.5.tgz
 # SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-6ed87a8b6c758cc3299a8b433e8a9a9122054ad5bc8aad43299cff3a53d8ca44  Python-3.5.4.tgz
+2f988db33913dcef17552fd1447b41afb89dbc26e3cdfc068ea6c62013a3a2a5  Python-3.5.5.tgz
 EOF
-tar xzf Python-3.5.4.tgz
+tar xzf Python-3.5.5.tgz
 
-cd Python-3.5.4
+cd Python-3.5.5
 
 # Explanation of flags:
 #
@@ -146,5 +146,5 @@ find "$PREFIX"/lib/python3.5/test \
 
 # Clean-up sources
 cd /opt
-rm /opt/sources/Python-3.5.4.tgz
-rm -r /opt/sources/Python-3.5.4
+rm /opt/sources/Python-3.5.5.tgz
+rm -r /opt/sources/Python-3.5.5
