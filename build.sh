@@ -19,6 +19,7 @@ set -euo pipefail
 # Actions
 benchmark=0 # Should run benchmarks?
 build=0 # Should build images?
+client_test=0 # Should run Google Cloud Client Library tests
 system_test=0 # Should run system tests?
 test=0 # Should run standard test suite?
 
@@ -42,8 +43,9 @@ Options:
   --[no]benchmark: Run benchmarking suite (default false)
   --[no]build: Build all images (default true if no options set)
   --[no]test: Run basic tests (default true if no options set)
-  --[no]local: Build images using local Docker daemon (default false)
+  --[no]client_test: Run Google Cloud Client Library tests (default false)
   --[no]system_test: Run system tests (default false)
+  --[no]local: Build images using local Docker daemon (default false)
 "
 }
 
@@ -90,6 +92,14 @@ while [ $# -gt 0 ]; do
       build=0
       shift
       ;;
+    --client_test)
+      client_test=1
+      shift
+      ;;
+    --noclient_test)
+      client_test=0
+      shift
+      ;;
     --local)
       local=1
       shift
@@ -123,6 +133,7 @@ done
 # If no actions chosen, then tell the user
 if [ "${benchmark}" -eq 0 -a \
   "${build}" -eq 0 -a \
+  "${client_test}" -eq 0 -a \
   "${system_test}" -eq 0 -a \
   "${test}" -eq 0 \
 ]; then
@@ -190,6 +201,12 @@ fi
 if [ "${test}" -eq 1 ]; then
   echo "Testing compatibility with popular Python libraries"
   ${gcloud_cmd} --config cloudbuild_test.yaml --substitutions "${substitutions}"
+fi
+
+# Run client library tests
+if [ "${client_test}" -eq 1 ]; then
+  echo "Testing compatibility with Google Cloud Client Libraries"
+  ${gcloud_cmd} --config cloudbuild_client_test.yaml --substitutions "${substitutions}"
 fi
 
 # Run system tests
