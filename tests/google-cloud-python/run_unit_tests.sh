@@ -7,7 +7,7 @@ exit_code=0
 failed_files=
 for noxfile in */nox.py; do
   if [ "${noxfile}" = "dlp/nox.py" ]; then
-    echo "*** Skipping ${noxfile} ****"
+    echo "**** Skipping ${noxfile} ****"
     continue
   fi
   echo "**** Starting tests in ${noxfile} ****"
