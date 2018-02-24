@@ -20,7 +20,6 @@ set -euo pipefail
 benchmark=0 # Should run benchmarks?
 build=0 # Should build images?
 client_test=0 # Should run Google Cloud Client Library tests
-system_test=0 # Should run system tests?
 test=0 # Should run standard test suite?
 
 local=0 # Should run using local Docker daemon instead of GCR?
@@ -44,7 +43,6 @@ Options:
   --[no]build: Build all images (default true if no options set)
   --[no]test: Run basic tests (default true if no options set)
   --[no]client_test: Run Google Cloud Client Library tests (default false)
-  --[no]system_test: Run system tests (default false)
   --[no]local: Build images using local Docker daemon (default false)
 "
 }
@@ -108,14 +106,6 @@ while [ $# -gt 0 ]; do
       local=0
       shift
       ;;
-    --system_test)
-      system_test=1
-      shift
-      ;;
-    --nosystem_test)
-      system_test=0
-      shift
-      ;;
     --test)
       test=1
       shift
@@ -134,7 +124,6 @@ done
 if [ "${benchmark}" -eq 0 -a \
   "${build}" -eq 0 -a \
   "${client_test}" -eq 0 -a \
-  "${system_test}" -eq 0 -a \
   "${test}" -eq 0 \
 ]; then
   echo 'No actions specified, defaulting to --build --test'
@@ -145,17 +134,6 @@ fi
 # Running build local or remote?
 if [ "${local}" -eq 1 ]; then 
   gcloud_cmd="${local_gcloud_cmd}"
-fi
-
-# Read action-specific environment variables
-if [ "${system_test}" -eq 1 ]; then
-  if [ -z "${GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS+set}" ] ; then
-    fatal 'Error: $GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS is not set; invoke with something like GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS=/path/to/service/account/creds.json'
-  fi
-
-  if [ -z "${GOOGLE_CLOUD_PROJECT_FOR_TESTS+set}" ] ; then
-    fatal 'Error: $GOOGLE_CLOUD_PROJECT_FOR_TESTS is not set; invoke with something like GOOGLE_CLOUD_PROJECT_FOR_TESTS=YOUR-PROJECT-NAME'
-  fi
 fi
 
 # Use latest released Debian as our base image
@@ -171,7 +149,6 @@ for outfile in \
   tests/benchmark/Dockerfile \
   tests/eventlet/Dockerfile \
   tests/google-cloud-python/Dockerfile \
-  tests/google-cloud-python-system/Dockerfile \
   tests/integration/Dockerfile \
   ; do
   envsubst <"${outfile}".in >"${outfile}" \
@@ -207,16 +184,6 @@ fi
 if [ "${client_test}" -eq 1 ]; then
   echo "Testing compatibility with Google Cloud Client Libraries"
   ${gcloud_cmd} --config cloudbuild_client_test.yaml --substitutions "${substitutions}"
-fi
-
-# Run system tests
-if [ "${system_test}" -eq 1 ]; then
-  echo "Running system tests using project ${GOOGLE_CLOUD_PROJECT_FOR_TESTS}"
-
-  trap "rm -f tests/google-cloud-python-system/credentials.json" EXIT
-  cp "${GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS}" tests/google-cloud-python-system/credentials.json
-  ${gcloud_cmd} --config cloudbuild_system_test.yaml --substitutions  "${substitutions}"
-  rm -f tests/google-cloud-python-system/credentials.json
 fi
 
 # Run benchmarks
