@@ -1,0 +1,9 @@
+timeout: 3600s
+steps:
+- # Build image to run google client library unit tests
+  name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}',
+         '--no-cache', '/workspace/tests/google-cloud-python/']
+- # Run google client library unit tests
+  name: ${_DOCKER_NAMESPACE}/python/tests/google-cloud-python:${_TAG}
+images: []
