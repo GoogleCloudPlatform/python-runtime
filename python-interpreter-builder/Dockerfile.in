@@ -50,11 +50,9 @@ ADD DEBIAN /DEBIAN
 RUN mkdir -p /opt/packages && \
     echo -n "" > /opt/packages/packages.txt
 
-RUN /scripts/build-python-3.5.sh && \
-    /scripts/package-python.sh 3.5.5 "1gcp~${TAG}"
+RUN /scripts/build-python-3.5.sh
 
-RUN /scripts/build-python-3.6.sh && \
-    /scripts/package-python.sh 3.6.4 "1gcp~${TAG}"
+RUN /scripts/build-python-3.6.sh
 
 # Tar the interpreters. Tarring is needed because docker cp doesn't handle
 # links correctly.
