@@ -37,9 +37,6 @@ cd Python-3.4.8
 #   (Debian) Ensure support is compiled in instead of relying on autodetection
 # --enable-loadable-sqlite-extensions
 #   (Debian)
-# --enable-optimizations
-#   Performance optimization (Enables PGO and may or may not enable
-#   LTO based on complex logic and bugs)
 # --prefix
 #   Avoid possible collisions with Debian or others
 # --with-computed-gotos
@@ -75,15 +72,6 @@ cd Python-3.4.8
 #   (Debian) Security hardening
 # RANLIB=
 #   (Debian) No-op
-#
-#
-# LTO (Link time optimization)
-#
-# Currently disabled, due to unresolved compile problems.  There is a
-# --with-lto flag, but Debian doesn't use it.  Instead, they pass lto
-# related flags in EXTRA_CFLAGS (to make, rather than configure).
-# Specifically EXTRA_CFLAGS="-g -flto -fuse-linker-plugin
-# -ffat-lto-objects"
 
 PREFIX=/opt/python3.4
 
