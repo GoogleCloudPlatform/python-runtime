@@ -20,12 +20,12 @@ ENV PYTHONUNBUFFERED 1
 ADD interpreters.tar.gz /
 
 # Add Google-built interpreters to the path
-ENV PATH /opt/python3.6/bin:/opt/python3.5/bin:$PATH
+ENV PATH /opt/python3.6/bin:/opt/python3.5/bin:/opt/python3.4/bin:$PATH
 
 # Upgrade pip (debian package version tends to run a few version behind) and
 # install virtualenv system-wide.
 RUN /usr/bin/pip install --upgrade -r /resources/requirements.txt && \
-    /usr/bin/pip3 install --upgrade -r /resources/requirements.txt && \
+    /opt/python3.4/bin/pip3.4 install --upgrade -r /resources/requirements.txt && \
     /opt/python3.5/bin/pip3.5 install --upgrade -r /resources/requirements.txt && \
     /opt/python3.6/bin/pip3.6 install --upgrade -r /resources/requirements.txt && \
     /usr/bin/pip install --upgrade -r /resources/requirements-virtualenv.txt
