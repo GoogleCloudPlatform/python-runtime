@@ -29,6 +29,8 @@ RUN apt-get update && apt-get install -yq \
     mime-support \
     net-tools \
     netbase \
+    python \
+    python3 \
     sharutils \
     time \
     tk-dev \
