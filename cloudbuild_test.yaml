@@ -41,7 +41,7 @@ steps:
     ]
 - name: gcr.io/cloud-builders/docker:latest
   args: [
-    'build', '-t', 'python3-libraries-intermediate', '--build-arg', 
+    'build', '-t', 'python3-libraries-intermediate', '--build-arg',
     'intermediate_image=${_DOCKER_NAMESPACE}/python:${_TAG}',
     '/workspace/tests/python3-libraries'
     ]
