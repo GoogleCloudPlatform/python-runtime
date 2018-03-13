@@ -1,6 +1,6 @@
 # The Google App Engine base image is debian (jessie) with ca-certificates
 # installed.
-FROM ${DEBIAN_BASE_IMAGE}
+FROM ${OS_BASE_IMAGE}
 
 # Install Python build dependencies (based on Debian Build-Depends)
 RUN apt-get update && apt-get install -yq \
@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -yq \
     mime-support \
     net-tools \
     netbase \
+    python \
     python3 \
     sharutils \
     time \
@@ -49,6 +50,8 @@ ADD DEBIAN /DEBIAN
 # Build the Python interpreters
 RUN mkdir -p /opt/packages && \
     echo -n "" > /opt/packages/packages.txt
+
+RUN /scripts/build-python-3.4.sh
 
 RUN /scripts/build-python-3.5.sh
 

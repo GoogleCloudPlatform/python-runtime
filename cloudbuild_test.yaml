@@ -1,27 +1,12 @@
 timeout: 3600s
 steps:
- # Validate structure of base runtime image
-- name: gcr.io/cloud-builders/docker:latest
-  args: ['build', '-t', 'python2-libraries-intermediate', '--build-arg', 
-         'intermediate_image=${_DOCKER_NAMESPACE}/python:${_TAG}',
-         '/workspace/tests/python2-libraries']
-- name: gcr.io/gcp-runtimes/container-structure-test:v0.1.1
+- # Explicitly pull image into GCB so that later steps work
+  name: '${_DOCKER_NAMESPACE}/python:${_TAG}'
   args: [
-    '-test.v',
-    '-image', 'python2-libraries-intermediate',
-    '/workspace/tests/python2-libraries/python2-libraries.yaml'
-  ]
-- name: gcr.io/cloud-builders/docker:latest
-  args: ['build', '-t', 'python3-libraries-intermediate', '--build-arg', 
-         'intermediate_image=${_DOCKER_NAMESPACE}/python:${_TAG}',
-         '/workspace/tests/python3-libraries']
-- name: gcr.io/gcp-runtimes/container-structure-test:v0.1.1
-  args: [
-    '-test.v',
-    '-image', 'python3-libraries-intermediate',
-    '/workspace/tests/python3-libraries/python3-libraries.yaml'
-  ]
-- name: gcr.io/gcp-runtimes/container-structure-test:v0.1.1
+    '/bin/true',
+    ]
+- # Validate structure of base runtime image
+  name: gcr.io/gcp-runtimes/container-structure-test:v0.2.1
   args: [
     '-test.v',
     '-image', '${_DOCKER_NAMESPACE}/python:${_TAG}',
@@ -31,10 +16,45 @@ steps:
     '/workspace/tests/virtualenv/virtualenv_python35.yaml',
     '/workspace/tests/virtualenv/virtualenv_python36.yaml',
     '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
-    '/workspace/tests/license-test/license-test.yaml'
     ]
-- # Run compatibility tests
+# Temporarily disabled because it fails on symbolic links in Ubuntu:
+#   https://github.com/GoogleCloudPlatform/container-structure-test/issues/77
+#- # Check license compliance
+#  name: gcr.io/gcp-runtimes/container-structure-test:v0.2.1
+#  args: [
+#    '-test.v',
+#    '-image', '${_DOCKER_NAMESPACE}/python:${_TAG}',
+#    '/workspace/tests/license-test/license-test.yaml'
+#    ]
+- # Do third-party library compatibility tests
   name: gcr.io/cloud-builders/docker:latest
-  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/tests/eventlet:${_TAG}',
-         '--no-cache', '/workspace/tests/eventlet/']
+  args: [
+    'build', '-t', 'python2-libraries-intermediate', '--build-arg',
+    'intermediate_image=${_DOCKER_NAMESPACE}/python:${_TAG}',
+    '/workspace/tests/python2-libraries'
+    ]
+- name: gcr.io/gcp-runtimes/container-structure-test:v0.2.1
+  args: [
+    '-test.v',
+    '-image', 'python2-libraries-intermediate',
+    '/workspace/tests/python2-libraries/python2-libraries.yaml'
+    ]
+- name: gcr.io/cloud-builders/docker:latest
+  args: [
+    'build', '-t', 'python3-libraries-intermediate', '--build-arg',
+    'intermediate_image=${_DOCKER_NAMESPACE}/python:${_TAG}',
+    '/workspace/tests/python3-libraries'
+    ]
+- name: gcr.io/gcp-runtimes/container-structure-test:v0.2.1
+  args: [
+    '-test.v',
+    '-image', 'python3-libraries-intermediate',
+    '/workspace/tests/python3-libraries/python3-libraries.yaml'
+    ]
+- # Run other compatibility tests
+  name: gcr.io/cloud-builders/docker:latest
+  args: [
+    'build', '--tag=${_DOCKER_NAMESPACE}/python/tests/eventlet:${_TAG}',
+    '--no-cache', '/workspace/tests/eventlet/'
+    ]
 images: []

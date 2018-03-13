@@ -22,7 +22,7 @@ commandTests:
 
   - name: "default python3.4 installation"
     command: ["which", "python3.4"]
-    expectedOutput: ["/usr/bin/python3.4\n"]
+    expectedOutput: ["/opt/python3.4/bin/python3.4\n"]
 
   - name: "default python3.5 installation"
     command: ["which", "python3.5"]

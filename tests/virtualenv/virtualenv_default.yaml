@@ -17,7 +17,7 @@ commandTests:
     command: ["python", "--version"]
     # we check stderr instead of stdout for Python versions < 3.4
     # https://bugs.python.org/issue18338
-    expectedError: ["Python 2.7.9\n"]
+    expectedError: ["Python 2.7.(9|12)\n"]
 
   - name: "virtualenv pip installation"
     setup: [["virtualenv", "/env"]]

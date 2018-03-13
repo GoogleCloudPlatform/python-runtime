@@ -24,9 +24,12 @@ test=0 # Should run standard test suite?
 
 local=0 # Should run using local Docker daemon instead of GCR?
 
+os_base=debian8 # Which operating system base to use
+
 # Note that $gcloud_cmd has spaces in it
-gcloud_cmd="gcloud beta container builds submit ."
-local_gcloud_cmd="scripts/local_cloudbuild.py"
+gcloud_cmd="gcloud container builds submit"
+# May need to install via "gcloud components install container-builder-local"
+local_gcloud_cmd="container-builder-local --push=false --dryrun=false"
 
 # Helper functions
 function fatal() {
@@ -44,6 +47,7 @@ Options:
   --[no]test: Run basic tests (default true if no options set)
   --[no]client_test: Run Google Cloud Client Library tests (default false)
   --[no]local: Build images using local Docker daemon (default false)
+  --os_base: Which OS image to build on top of [debian8, ubuntu16]
 "
 }
 
@@ -106,6 +110,14 @@ while [ $# -gt 0 ]; do
       local=0
       shift
       ;;
+    --os_base=debian8)
+      os_base=debian8
+      shift
+      ;;
+    --os_base=ubuntu16)
+      os_base=ubuntu16
+      shift
+      ;;
     --test)
       test=1
       shift
@@ -136,8 +148,12 @@ if [ "${local}" -eq 1 ]; then
   gcloud_cmd="${local_gcloud_cmd}"
 fi
 
-# Use latest released Debian as our base image
-export DEBIAN_BASE_IMAGE="gcr.io/google-appengine/debian8:latest"
+# Pick OS image to use as base
+if [ "${os_base}" == "ubuntu16" ]; then
+  export OS_BASE_IMAGE="gcr.io/gcp-runtimes/ubuntu_16_0_4:latest"
+else
+  export OS_BASE_IMAGE="gcr.io/google-appengine/debian8:latest"
+fi
 export STAGING_IMAGE="${DOCKER_NAMESPACE}/python:${TAG}"
 echo "Using base image name ${STAGING_IMAGE}"
 
@@ -152,7 +168,7 @@ for outfile in \
   tests/integration/Dockerfile \
   ; do
   envsubst <"${outfile}".in >"${outfile}" \
-    '$DEBIAN_BASE_IMAGE $STAGING_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS $TAG'
+    '$OS_BASE_IMAGE $STAGING_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS $TAG'
 done
 
 # Make some files available to the runtime builder Docker context
@@ -171,23 +187,35 @@ cp -a scripts/testdata/hello_world/main.py tests/eventlet/main.py
 # Build images and push to GCR
 if [ "${build}" -eq 1 ]; then
   echo "Building images"
-  ${gcloud_cmd} --config cloudbuild.yaml --substitutions "${build_substitutions}"
+  ${gcloud_cmd} \
+    --config=cloudbuild.yaml \
+    --substitutions="${build_substitutions}" \
+    .
 fi
 
 # Run the tests that don't require (too many) external services
 if [ "${test}" -eq 1 ]; then
   echo "Testing compatibility with popular Python libraries"
-  ${gcloud_cmd} --config cloudbuild_test.yaml --substitutions "${substitutions}"
+  ${gcloud_cmd} \
+    --config=cloudbuild_test.yaml \
+    --substitutions="${substitutions}" \
+    .
 fi
 
 # Run client library tests
 if [ "${client_test}" -eq 1 ]; then
   echo "Testing compatibility with Google Cloud Client Libraries"
-  ${gcloud_cmd} --config cloudbuild_client_test.yaml --substitutions "${substitutions}"
+  ${gcloud_cmd} \
+    --config=cloudbuild_client_test.yaml \
+    --substitutions="${substitutions}" \
+    .
 fi
 
 # Run benchmarks
 if [ "${benchmark}" -eq 1 ] ; then
   echo "Running benchmark"
-  ${gcloud_cmd} --config cloudbuild_benchmark.yaml --substitutions  "${substitutions}"
+  ${gcloud_cmd} \
+    --config=cloudbuild_benchmark.yaml \
+    --substitutions="${substitutions}" \
+    .
 fi
