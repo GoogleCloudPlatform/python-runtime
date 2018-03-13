@@ -148,11 +148,11 @@ if [ "${local}" -eq 1 ]; then
   gcloud_cmd="${local_gcloud_cmd}"
 fi
 
-# Use latest released Debian as our base image
+# Pick OS image to use as base
 if [ "${os_base}" == "ubuntu16" ]; then
-  export DEBIAN_BASE_IMAGE="gcr.io/gcp-runtimes/ubuntu_16_0_4:latest"
+  export OS_BASE_IMAGE="gcr.io/gcp-runtimes/ubuntu_16_0_4:latest"
 else
-  export DEBIAN_BASE_IMAGE="gcr.io/google-appengine/debian8:latest"
+  export OS_BASE_IMAGE="gcr.io/google-appengine/debian8:latest"
 fi
 export STAGING_IMAGE="${DOCKER_NAMESPACE}/python:${TAG}"
 echo "Using base image name ${STAGING_IMAGE}"
@@ -168,7 +168,7 @@ for outfile in \
   tests/integration/Dockerfile \
   ; do
   envsubst <"${outfile}".in >"${outfile}" \
-    '$DEBIAN_BASE_IMAGE $STAGING_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS $TAG'
+    '$OS_BASE_IMAGE $STAGING_IMAGE $GOOGLE_CLOUD_PROJECT_FOR_TESTS $TAG'
 done
 
 # Make some files available to the runtime builder Docker context

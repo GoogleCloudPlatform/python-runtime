@@ -1,7 +1,7 @@
 # The Google App Engine base image is debian (jessie) with ca-certificates
 # installed.
 # Source: https://github.com/GoogleCloudPlatform/debian-docker
-FROM ${DEBIAN_BASE_IMAGE}
+FROM ${OS_BASE_IMAGE}
 
 ADD resources /resources
 ADD scripts /scripts
