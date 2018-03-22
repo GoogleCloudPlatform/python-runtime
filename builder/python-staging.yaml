@@ -1,0 +1,12 @@
+# This is a cloudbuild.yaml template for the runtime builder
+steps:
+- # Generate application Dockerfile
+  name: 'gcr.io/gcp-runtimes/python/gen-dockerfile:staging'
+  args: [
+    '--base-image=gcr.io/google-appengine/python:staging'
+  ]
+- # Use that Dockerfile to create final application image
+  name: 'gcr.io/cloud-builders/docker:latest'
+  args: ['build', '-t', '$_OUTPUT_IMAGE', '.']
+images:
+ - '$_OUTPUT_IMAGE' 
