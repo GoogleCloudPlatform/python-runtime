@@ -46,17 +46,3 @@ ENV LANG C.UTF-8
 # Add build scripts
 ADD scripts /scripts
 ADD DEBIAN /DEBIAN
-
-# Build the Python interpreters
-RUN mkdir -p /opt/packages && \
-    echo -n "" > /opt/packages/packages.txt
-
-RUN /scripts/build-python-3.4.sh
-
-RUN /scripts/build-python-3.5.sh
-
-RUN /scripts/build-python-3.6.sh
-
-# Tar the interpreters. Tarring is needed because docker cp doesn't handle
-# links correctly.
-RUN tar czf /interpreters.tar.gz /opt/python?.?

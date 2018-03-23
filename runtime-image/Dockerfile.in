@@ -17,7 +17,9 @@ ENV LANG C.UTF-8
 ENV PYTHONUNBUFFERED 1
 
 # Install the Google-built interpreters
-ADD interpreters.tar.gz /
+ADD interpreter-3.4.tar.gz /
+ADD interpreter-3.5.tar.gz /
+ADD interpreter-3.6.tar.gz /
 
 # Add Google-built interpreters to the path
 ENV PATH /opt/python3.6/bin:/opt/python3.5/bin:/opt/python3.4/bin:$PATH

@@ -148,3 +148,6 @@ find "$PREFIX"/lib/python3.5/test \
 cd /opt
 rm /opt/sources/Python-3.5.5.tgz
 rm -r /opt/sources/Python-3.5.5
+
+# Archive and copy to persistent external volume
+tar czf /workspace/runtime-image/interpreter-3.5.tar.gz /opt/python3.5
