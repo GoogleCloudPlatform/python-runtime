@@ -148,3 +148,6 @@ find "$PREFIX"/lib/python3.6/test \
 cd /opt
 rm /opt/sources/Python-3.6.4.tgz
 rm -r /opt/sources/Python-3.6.4
+
+# Archive and copy to persistent external volume
+tar czf /workspace/runtime-image/interpreter-3.6.tar.gz /opt/python3.6
