@@ -37,6 +37,17 @@ commandTests:
     command: ["which", "gunicorn"]
     expectedOutput: ["/usr/local/bin/gunicorn\n"]
 
+  - # Regression test for issue187
+    name: "default python3 installation"
+    command: ["which", "python3"]
+    expectedOutput: ["/usr/local/bin/python3\n"]
+  - name: "default python3 version"
+    command: ["python3", "--version"]
+    expectedOutput: ["Python 3.6.4\n"]
+  - name: "default pip3 installation"
+    command: ["which", "pip3"]
+    expectedOutput: ["/usr/local/bin/pip3\n"]
+
   - name: "default flask installation"
     # Checks that 'pip' and 'python' are using the same Python version
     setup: [["pip", "install", "flask"]]
