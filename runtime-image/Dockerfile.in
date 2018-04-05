@@ -30,8 +30,11 @@ RUN update-alternatives --install /usr/local/bin/pip3 pip3 /opt/python3.6/bin/pi
 # install virtualenv system-wide.
 RUN /usr/bin/pip install --upgrade -r /resources/requirements.txt && \
     /opt/python3.4/bin/pip3.4 install --upgrade -r /resources/requirements.txt && \
+    rm -f /opt/python3.4/bin/pip /opt/python3.4/bin/pip3 && \
     /opt/python3.5/bin/pip3.5 install --upgrade -r /resources/requirements.txt && \
+    rm -f /opt/python3.5/bin/pip /opt/python3.5/bin/pip3 && \
     /opt/python3.6/bin/pip3.6 install --upgrade -r /resources/requirements.txt && \
+    rm -f /opt/python3.6/bin/pip /opt/python3.6/bin/pip3 && \
     /usr/bin/pip install --upgrade -r /resources/requirements-virtualenv.txt
 
 # Setup the app working directory
