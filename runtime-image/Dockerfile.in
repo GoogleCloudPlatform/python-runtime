@@ -16,10 +16,13 @@ ENV LANG C.UTF-8
 # logging collection.
 ENV PYTHONUNBUFFERED 1
 
-# Install the Google-built interpreters
-ADD interpreter-3.4.tar.gz /
-ADD interpreter-3.5.tar.gz /
-ADD interpreter-3.6.tar.gz /
+RUN wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3.4.tar.gz && \
+    wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3.5.tar.gz && \
+    wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3.6.tar.gz && \
+    tar -xzf interpreter-3.4.tar.gz && \
+    tar -xzf interpreter-3.5.tar.gz && \
+    tar -xzf interpreter-3.6.tar.gz && \
+    rm interpreter-*.tar.gz
 
 # Add Google-built interpreters to the path
 ENV PATH /opt/python3.6/bin:/opt/python3.5/bin:/opt/python3.4/bin:$PATH

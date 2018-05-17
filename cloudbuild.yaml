@@ -1,29 +1,10 @@
 timeout: 10800s
 steps:
-- # Compile Python interpreters from source.  This step happens first, then
-  # the next three in parallel.
-  name: gcr.io/cloud-builders/docker:latest
-  args: ['build', '--tag=${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}',
-         '--no-cache', '/workspace/python-interpreter-builder/']
-  id: interpreter-builder
-- name: ${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}
-  args: ['/scripts/build-python-3.4.sh']
-  id: build-3.4
-  waitFor: ['interpreter-builder']
-- name: ${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}
-  args: ['/scripts/build-python-3.5.sh']
-  id: build-3.5
-  waitFor: ['interpreter-builder']
-- name: ${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}
-  args: ['/scripts/build-python-3.6.sh']
-  id: build-3.6
-  waitFor: ['interpreter-builder']
 - # Build base runtime image
   name: gcr.io/cloud-builders/docker:latest
   args: ['build', '--tag=${_DOCKER_NAMESPACE}/python:${_TAG}',
          '--no-cache', '/workspace/runtime-image/']
   id: runtime
-  waitFor: ['build-3.4', 'build-3.5', 'build-3.6']
 - # Build runtime builder image
   name: gcr.io/cloud-builders/docker:latest
   args: ['build', '--tag=${_BUILDER_DOCKER_NAMESPACE}/python/gen-dockerfile:${_TAG}',
@@ -31,7 +12,6 @@ steps:
   id: gen-dockerfile
   waitFor: ['runtime']
 images: [
-  '${_DOCKER_NAMESPACE}/python/interpreter-builder:${_TAG}',
   '${_DOCKER_NAMESPACE}/python:${_TAG}',
   '${_BUILDER_DOCKER_NAMESPACE}/python/gen-dockerfile:${_TAG}',
 ]
