@@ -25,6 +25,7 @@ test=0 # Should run standard test suite?
 local=0 # Should run using local Docker daemon instead of GCR?
 
 os_base=debian8 # Which operating system base to use
+interpreter=0 # Should build interpreters instead of images
 
 # Note that $gcloud_cmd has spaces in it
 gcloud_cmd="gcloud container builds submit"
@@ -126,6 +127,10 @@ while [ $# -gt 0 ]; do
       test=0
       shift
       ;;
+    --interpreter)
+      interpreter=1
+      shift
+      ;;
     *)
       usage
       ;;
@@ -183,6 +188,14 @@ done
 
 # Make a file available to the eventlet test.
 cp -a scripts/testdata/hello_world/main.py tests/eventlet/main.py
+
+# Build interpreters and push to GCS
+if [ "${interpreter}" -eq 1 ]; then
+  echo "Building interpreters"
+  ${gcloud_cmd} \
+    --config=cloudbuild_interpreters.yaml \
+    .
+fi
 
 # Build images and push to GCR
 if [ "${build}" -eq 1 ]; then

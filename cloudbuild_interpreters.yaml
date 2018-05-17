@@ -1,0 +1,29 @@
+timeout: 10800s
+steps:
+- # Compile Python interpreters from source.  This step happens first, then
+  # the next three in parallel.
+  name: gcr.io/cloud-builders/docker:latest
+  args: ['build', '--tag=interpreter-builder',
+         '--no-cache', '/workspace/python-interpreter-builder/']
+  id: interpreter-builder
+- name: interpreter-builder
+  args: ['/scripts/build-python-3.4.sh']
+  id: build-3.4
+  waitFor: ['interpreter-builder']
+- name: interpreter-builder
+  args: ['/scripts/build-python-3.5.sh']
+  id: build-3.5
+  waitFor: ['interpreter-builder']
+- name: interpreter-builder
+  args: ['/scripts/build-python-3.6.sh']
+  id: build-3.6
+  waitFor: ['interpreter-builder']
+
+# Upload them to tbe build-id location
+- name: gcr.io/cloud-builders/gsutil:latest
+  args: ['cp', '/workspace/runtime-image/*.tar.gz', 'gs://python-interpreters/$BUILD_ID/']
+  waitFor: ['build-3.4', 'build-3.5', 'build-3.6']
+
+# "Tag" this as latest
+- name: gcr.io/cloud-builders/gsutil:latest
+  args: ['cp', '-r', 'gs://python-interpreters/$BUILD_ID/*', 'gs://python-interpreters/latest/']

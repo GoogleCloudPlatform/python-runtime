@@ -39,6 +39,17 @@ follows:
 4. `build.sh` invokes Google Container Builder with the `cloudbuild-*.yaml`
    config files.
 
+## Building interpreters
+
+The interpreters used are now built in a separate step, and stored on GCS.
+This allows the runtime images to be build more rapidly.
+
+To build the interpreters, run:
+
+```shell
+gcloud container builds submit . --config=cloudbuild_interpreters.yaml
+```
+
 ## Building outside Jenkins
 
 To build this repository outside Jenkins, authenticate and authorize yourself
