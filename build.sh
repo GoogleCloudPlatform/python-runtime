@@ -29,8 +29,8 @@ interpreter=0 # Should build interpreters instead of images
 
 # Note that $gcloud_cmd has spaces in it
 gcloud_cmd="gcloud container builds submit"
-# May need to install via "gcloud components install container-builder-local"
-local_gcloud_cmd="container-builder-local --push=false --dryrun=false"
+# May need to install via "gcloud components install cloud-build-local"
+local_gcloud_cmd="cloud-build-local --push=false --dryrun=false"
 
 # Helper functions
 function fatal() {
