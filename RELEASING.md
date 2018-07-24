@@ -47,7 +47,7 @@ This allows the runtime images to be build more rapidly.
 To build the interpreters, run:
 
 ```shell
-gcloud container builds submit . --config=cloudbuild_interpreters.yaml
+gcloud builds submit . --config=cloudbuild_interpreters.yaml
 ```
 
 ## Building outside Jenkins
