@@ -25,7 +25,7 @@ commandTests:
   - name: "virtualenv36 python version"
     setup: [["virtualenv", "-p", "python3.6", "/env"]]
     command: ["python", "--version"]
-    expectedOutput: ["Python 3.6.5\n"]
+    expectedOutput: ["Python 3.6.6\n"]
 
   - name: "virtualenv36 pip installation"
     setup: [["virtualenv", "-p", "python3.6", "/env"]]
