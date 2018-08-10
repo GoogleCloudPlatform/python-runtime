@@ -6,21 +6,21 @@ set -x
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.6.6/Python-3.6.6.tgz
 # SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-53a3e17d77cd15c5230192b6a8c1e031c07cd9f34a2f089a731c6f6bd343d5c6  Python-3.6.5.tgz
+7d56dadf6c7d92a238702389e80cfe66fbfae73e584189ed6f89c75bbf3eda58  Python-3.6.6.tgz
 EOF
-tar xzf Python-3.6.5.tgz
+tar xzf Python-3.6.6.tgz
 
-cd Python-3.6.5
+cd Python-3.6.6
 
 # Explanation of flags:
 #
 # Noteworthy Debian options we _don't_ use:
 #
-# --enable-shared
 #   This is complicated to get right, and we don't expect our
+# --enable-shared
 #   customers to embed Python in a native code application.  There is
 #   also a noteworthy interaction with 'make altinstall'
 #   (https://bugs.python.org/issue27685)
@@ -146,8 +146,8 @@ find "$PREFIX"/lib/python3.6/test \
 
 # Clean-up sources
 cd /opt
-rm /opt/sources/Python-3.6.5.tgz
-rm -r /opt/sources/Python-3.6.5
+rm /opt/sources/Python-3.6.6.tgz
+rm -r /opt/sources/Python-3.6.6
 
 # Archive and copy to persistent external volume
 tar czf /workspace/runtime-image/interpreter-3.6.tar.gz /opt/python3.6
