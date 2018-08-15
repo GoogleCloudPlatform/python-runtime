@@ -21,7 +21,7 @@ GOOGLE_APPLICATION_CREDENTIALS_FOR_TESTS
 GOOGLE_CLOUD_PROJECT_FOR_TESTS
 : (System test only) Name of the Google Cloud Platform project to run the system
 tests under.
-  
+
 ## Building and Releasing
 
 A custom Jenkins job builds and releases this repository using scripts and job
@@ -36,7 +36,7 @@ follows:
   b. `gcloud auth activate-service-account` is performed
   c. `gcloud config set project` is performed
 3. The script invokes `build.sh` in this repository
-4. `build.sh` invokes Google Container Builder with the `cloudbuild-*.yaml`
+4. `build.sh` invokes Google Cloud Build with the `cloudbuild-*.yaml`
    config files.
 
 ## Building interpreters
