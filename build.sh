@@ -149,7 +149,7 @@ if [ "${benchmark}" -eq 0 -a \
 fi
 
 # Running build local or remote?
-if [ "${local}" -eq 1 ]; then 
+if [ "${local}" -eq 1 ]; then
   gcloud_cmd="${local_gcloud_cmd}"
 fi
 

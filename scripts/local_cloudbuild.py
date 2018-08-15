@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Emulate the Google Container Builder locally.
+"""Emulate the Google Cloud Build locally.
 
 The input is a local cloudbuild.yaml file.  This is translated into a
 series of commands for the locally installed Docker daemon.  These
@@ -48,7 +48,7 @@ import validation_utils
 # Exclude non-printable control characters (including newlines)
 PRINTABLE_REGEX = re.compile(r"""^[^\x00-\x1f]*$""")
 
-# Container Builder substitutions
+# Cloud Build substitutions
 # https://cloud.google.com/container-builder/docs/api/build-requests#substitutions
 SUBSTITUTION_REGEX = re.compile(r"""(?x)
     [$]                    # Dollar sign
