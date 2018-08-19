@@ -36,7 +36,7 @@ follows:
   b. `gcloud auth activate-service-account` is performed
   c. `gcloud config set project` is performed
 3. The script invokes `build.sh` in this repository
-4. `build.sh` invokes Google Container Builder with the `cloudbuild-*.yaml`
+4. `build.sh` invokes Google Cloud Build with the `cloudbuild-*.yaml`
    config files.
 
 ## Building interpreters
@@ -65,7 +65,7 @@ Debian or Ubuntu-like).
 ## Building locally
 
 To build this repository using local Docker commands instead of the Google
-Container Builder service, add the `--local` flag as shown:
+Cloud Build service, add the `--local` flag as shown:
 
 ``` shell
 ./build.sh --local
