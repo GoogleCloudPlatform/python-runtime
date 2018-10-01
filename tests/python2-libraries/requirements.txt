@@ -5,7 +5,7 @@ ansible==2.6.3
 anyjson==0.3.3
 apache-libcloud==2.3.0
 argparse==1.4.0
-astroid==2.0.4
+astroid==1.6.5
 awscli==1.16.1
 babel==2.6.0
 backports.ssl_match_hostname==3.5.0.1
@@ -25,7 +25,7 @@ cffi==1.11.5
 chardet==3.0.4
 click==6.7
 cliff==2.13.0
-cmd2==0.9.4
+cmd2==0.8.9
 colorama==0.3.9
 configobj==5.0.6
 cov-core==1.15.0
@@ -121,7 +121,7 @@ pexpect==4.6.0
 pika==0.12.0
 pillow==5.2.0
 pip==18.0
-prettytable==7
+prettytable==0.7.2
 protobuf==3.6.1
 psutil==5.4.7
 psycopg2==2.7.5
@@ -135,7 +135,7 @@ pyflakes==2.0.0
 pygments==2.2.0
 pyjwt==1.6.4
 pylibmc==1.5.2
-pylint==2.1.1
+pylint==1.9.3
 pymongo==3.7.1
 pymysql==0.9.2
 pyopenssl==18.0.0
