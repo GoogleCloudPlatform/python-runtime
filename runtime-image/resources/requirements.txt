@@ -1,3 +1,5 @@
-pip==18.0
+# Do not update pip, it conflicts with the OS system installed version.
+# https://github.com/pypa/pip/issues/5240
+pip==9.0.3
 setuptools==40.2.0
 wheel==0.31.1
