@@ -1,10 +1,10 @@
-click==6.7
+click==7.0
 enum-compat==0.0.2
 eventlet==0.24.1
 Flask==1.0.2
-greenlet==0.4.14
+greenlet==0.4.15
 gunicorn==19.9.0
-itsdangerous==0.24
+itsdangerous==1.1.0
 Jinja2==2.10
-MarkupSafe==1.0
+MarkupSafe==1.1.0
 Werkzeug==0.14.1
