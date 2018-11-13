@@ -57,7 +57,7 @@ def lint(session):
 
 
 @nox.session
-@nox.parametrize('version', ['3.4', '3.5', '3.6'])
+@nox.parametrize('version', ['3.4', '3.5', '3.6', '3.7'])
 def tests(session, version):
     session.interpreter = 'python' + version
     session.install('-r', 'scripts/requirements-test.txt')

@@ -18,11 +18,15 @@ steps:
   args: ['/scripts/build-python-3.6.sh']
   id: build-3.6
   waitFor: ['interpreter-builder']
+- name: interpreter-builder
+  args: ['/scripts/build-python-3.7.sh']
+  id: build-3.7
+  waitFor: ['interpreter-builder']
 
 # Upload them to tbe build-id location
 - name: gcr.io/cloud-builders/gsutil:latest
   args: ['cp', '/workspace/runtime-image/*.tar.gz', 'gs://python-interpreters/$BUILD_ID/']
-  waitFor: ['build-3.4', 'build-3.5', 'build-3.6']
+  waitFor: ['build-3.4', 'build-3.5', 'build-3.6', 'build-3.7']
 
 # "Tag" this as latest
 - name: gcr.io/cloud-builders/gsutil:latest

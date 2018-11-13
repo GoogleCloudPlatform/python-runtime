@@ -54,6 +54,7 @@ PYTHON_INTERPRETER_VERSION_MAP = {
     '3.4': '3.4',
     '3.5': '3.5',
     '3.6': '3.6',
+    '3.7': '3.7',
 }
 
 # Name of environment variable potentially set by gcloud
