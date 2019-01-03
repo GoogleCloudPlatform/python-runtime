@@ -7,48 +7,48 @@ globalEnvVars:
     value: "/env/bin:$PATH"
 
 commandTests:
-  - name: "virtualenv36 python installation"
+  - name: "virtualenv37 python installation"
     setup: [["virtualenv", "-p", "python3.7", "/env"]]
     command: ["which", "python"]
     expectedOutput: ["/env/bin/python\n"]
 
-  - name: "virtualenv36 python3 installation"
+  - name: "virtualenv37 python3 installation"
     setup: [["virtualenv", "-p", "python3.7", "/env"]]
     command: ["which", "python3"]
     expectedOutput: ["/env/bin/python3\n"]
 
-  - name: "virtualenv36 python3.7 installation"
+  - name: "virtualenv37 python3.7 installation"
     setup: [["virtualenv", "-p", "python3.7", "/env"]]
     command: ["which", "python3.7"]
     expectedOutput: ["/env/bin/python3.7\n"]
 
-  - name: "virtualenv36 python version"
+  - name: "virtualenv37 python version"
     setup: [["virtualenv", "-p", "python3.7", "/env"]]
     command: ["python", "--version"]
     expectedOutput: ["Python 3.7.2\n"]
 
-  - name: "virtualenv36 pip installation"
+  - name: "virtualenv37 pip installation"
     setup: [["virtualenv", "-p", "python3.7", "/env"]]
     command: ["which", "pip"]
     expectedOutput: ["/env/bin/pip\n"]
 
-  - name: "virtualenv36 pip3 installation"
+  - name: "virtualenv37 pip3 installation"
     setup: [["virtualenv", "-p", "python3.7", "/env"]]
     command: ["which", "pip3"]
     expectedOutput: ["/env/bin/pip3\n"]
 
-  - name: "virtualenv36 gunicorn installation"
+  - name: "virtualenv37 gunicorn installation"
     setup: [["virtualenv", "-p", "python3.7", "/env"],
             ["pip", "install", "gunicorn"]]
     command: ["which", "gunicorn"]
     expectedOutput: ["/env/bin/gunicorn"]
 
-  - name: "virtualenv36 flask installation"
+  - name: "virtualenv37 flask installation"
     setup: [["virtualenv", "-p", "python3.7", "/env"],
             ["pip", "install", "flask"]]
     command: ["python", "-c", "import flask; print(flask.__file__)"]
     expectedOutput: ["/env/lib/python3.7/site-packages/flask"]
 
-  - name: "virtualenv36 test.support availability"
+  - name: "virtualenv37 test.support availability"
     setup: [["virtualenv", "-p", "python3.7", "/env"]]
     command: ["python", "-c", "\"from test import pystone, regrtest, support\""]
