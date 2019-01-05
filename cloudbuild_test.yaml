@@ -47,6 +47,13 @@ steps:
   args: [
     '-test.v',
     '-image', '${_DOCKER_NAMESPACE}/python:${_TAG}',
+    '/workspace/tests/virtualenv/virtualenv_python37.yaml',
+    ]
+  waitFor: ['runtime']
+- name: gcr.io/gcp-runtimes/container-structure-test:v0.2.1
+  args: [
+    '-test.v',
+    '-image', '${_DOCKER_NAMESPACE}/python:${_TAG}',
     '/workspace/tests/no-virtualenv/no-virtualenv.yaml',
     ]
   waitFor: ['runtime']
