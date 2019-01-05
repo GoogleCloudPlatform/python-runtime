@@ -19,7 +19,7 @@ ENV PYTHONUNBUFFERED 1
 RUN wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3.4.tar.gz && \
     wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3.5.tar.gz && \
     wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3.6.tar.gz && \
-    wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3.7.tar.gz && \    
+    wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3.7.tar.gz && \
     tar -xzf interpreter-3.4.tar.gz && \
     tar -xzf interpreter-3.5.tar.gz && \
     tar -xzf interpreter-3.6.tar.gz && \
@@ -41,7 +41,7 @@ RUN /usr/bin/pip install --upgrade -r /resources/requirements.txt && \
     /opt/python3.6/bin/pip3.6 install --upgrade -r /resources/requirements.txt && \
     rm -f /opt/python3.6/bin/pip /opt/python3.6/bin/pip3 && \
     /opt/python3.7/bin/pip3.7 install --upgrade -r /resources/requirements.txt && \
-    rm -f /opt/python3.7/bin/pip /opt/python3.7/bin/pip3 && \    
+    rm -f /opt/python3.7/bin/pip /opt/python3.7/bin/pip3 && \
     /usr/bin/pip install --upgrade -r /resources/requirements-virtualenv.txt
 
 # Setup the app working directory
