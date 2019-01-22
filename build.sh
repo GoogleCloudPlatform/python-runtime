@@ -24,7 +24,7 @@ test=0 # Should run standard test suite?
 
 local=0 # Should run using local Docker daemon instead of GCR?
 
-os_base=debian8 # Which operating system base to use
+os_base=ubuntu16 # Which operating system base to use
 interpreter=0 # Should build interpreters instead of images
 
 # Note that $gcloud_cmd has spaces in it
@@ -154,10 +154,10 @@ if [ "${local}" -eq 1 ]; then
 fi
 
 # Pick OS image to use as base
-if [ "${os_base}" == "ubuntu16" ]; then
-  export OS_BASE_IMAGE="gcr.io/gcp-runtimes/ubuntu_16_0_4:latest"
-else
+if [ "${os_base}" == "debian8" ]; then
   export OS_BASE_IMAGE="gcr.io/google-appengine/debian8:latest"
+else
+  export OS_BASE_IMAGE="gcr.io/gcp-runtimes/ubuntu_16_0_4:latest"
 fi
 export STAGING_IMAGE="${DOCKER_NAMESPACE}/python:${TAG}"
 echo "Using base image name ${STAGING_IMAGE}"
