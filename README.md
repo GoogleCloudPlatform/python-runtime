@@ -8,7 +8,7 @@ for running applications on
 [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine), or any
 other Docker host.
 
-This image is based on Debian Jessie and contains packages required to build
+This image is based on Ubuntu Xenial and contains packages required to build
 most of the popular Python libraries. For more information about this runtime,
 see the
 [documentation](https://cloud.google.com/appengine/docs/flexible/python/runtime).
