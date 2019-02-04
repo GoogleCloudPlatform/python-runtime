@@ -28,8 +28,8 @@ RUN wget https://storage.googleapis.com/python-interpreters/latest/interpreter-3
 
 # Add Google-built interpreters to the path
 ENV PATH /opt/python3.7/bin:/opt/python3.6/bin:/opt/python3.5/bin:/opt/python3.4/bin:$PATH
-RUN update-alternatives --install /usr/local/bin/python3 python3 /opt/python3.7/bin/python3.7 50 && \
-    update-alternatives --install /usr/local/bin/pip3 pip3 /opt/python3.7/bin/pip3.7 50
+RUN update-alternatives --install /usr/local/bin/python3 python3 /opt/python3.6/bin/python3.6 50 && \
+    update-alternatives --install /usr/local/bin/pip3 pip3 /opt/python3.6/bin/pip3.6 50
 
 # Upgrade pip (debian package version tends to run a few version behind) and
 # install virtualenv system-wide.
