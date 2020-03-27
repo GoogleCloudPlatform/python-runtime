@@ -6,14 +6,14 @@ set -x
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.7.2/Python-3.7.2.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
 # SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-f09d83c773b9cc72421abba2c317e4e6e05d919f9bcf34468e192b6a6c8e328d  Python-3.7.2.tgz
+8c8be91cd2648a1a0c251f04ea0bb4c2a5570feb9c45eaaa2241c785585b475a  Python-3.7.7.tgz
 EOF
-tar xzf Python-3.7.2.tgz
+tar xzf Python-3.7.7.tgz
 
-cd Python-3.7.2
+cd Python-3.7.7
 
 # Explanation of flags:
 #
@@ -146,8 +146,8 @@ find "$PREFIX"/lib/python3.7/test \
 
 # Clean-up sources
 cd /opt
-rm /opt/sources/Python-3.7.2.tgz
-rm -r /opt/sources/Python-3.7.2
+rm /opt/sources/Python-3.7.7.tgz
+rm -r /opt/sources/Python-3.7.7
 
 # Archive and copy to persistent external volume
 tar czf /workspace/runtime-image/interpreter-3.7.tar.gz /opt/python3.7
