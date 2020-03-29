@@ -6,14 +6,14 @@ set -x
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.6.8/Python-3.6.8.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.6.10/Python-3.6.10.tgz
 # SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-7f5b1f08b3b0a595387ef6c64c85b1b13b38abef0dd871835ee923262e4f32f0  Python-3.6.8.tgz
+7034dd7cba98d4f94c74f9edd7345bac71c8814c41672c64d9044fa2f96f334d  Python-3.6.10.tgz
 EOF
-tar xzf Python-3.6.8.tgz
+tar xzf Python-3.6.10.tgz
 
-cd Python-3.6.8
+cd Python-3.6.10
 
 # Explanation of flags:
 #
@@ -146,8 +146,8 @@ find "$PREFIX"/lib/python3.6/test \
 
 # Clean-up sources
 cd /opt
-rm /opt/sources/Python-3.6.8.tgz
-rm -r /opt/sources/Python-3.6.8
+rm /opt/sources/Python-3.6.10.tgz
+rm -r /opt/sources/Python-3.6.10
 
 # Archive and copy to persistent external volume
 tar czf /workspace/runtime-image/interpreter-3.6.tar.gz /opt/python3.6

@@ -6,14 +6,14 @@ set -x
 # Get the source
 mkdir -p /opt/sources
 cd /opt/sources
-wget --no-verbose https://www.python.org/ftp/python/3.5.5/Python-3.5.5.tgz
+wget --no-verbose https://www.python.org/ftp/python/3.5.9/Python-3.5.9.tgz
 # SHA-256 generated via `shasum -a 256 [file]`
 shasum --check <<EOF
-2f988db33913dcef17552fd1447b41afb89dbc26e3cdfc068ea6c62013a3a2a5  Python-3.5.5.tgz
+67a1d4fc6e4540d6a092cadc488e533afa961b3c9becc74dc3d6b55cb56e0cc1  Python-3.5.9.tgz
 EOF
-tar xzf Python-3.5.5.tgz
+tar xzf Python-3.5.9.tgz
 
-cd Python-3.5.5
+cd Python-3.5.9
 
 # Explanation of flags:
 #
@@ -146,8 +146,8 @@ find "$PREFIX"/lib/python3.5/test \
 
 # Clean-up sources
 cd /opt
-rm /opt/sources/Python-3.5.5.tgz
-rm -r /opt/sources/Python-3.5.5
+rm /opt/sources/Python-3.5.9.tgz
+rm -r /opt/sources/Python-3.5.9
 
 # Archive and copy to persistent external volume
 tar czf /workspace/runtime-image/interpreter-3.5.tar.gz /opt/python3.5
