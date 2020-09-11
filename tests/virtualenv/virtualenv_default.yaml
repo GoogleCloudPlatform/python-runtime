@@ -34,4 +34,4 @@ commandTests:
     setup: [["virtualenv", "/env"],
             ["pip", "install", "flask"]]
     command: ["python", "-c", "import flask; print(flask.__file__)"]
-    expectedOutput: ["/env/local/lib/python2.7/site-packages/flask"]
+    expectedOutput: ["/env/lib/python2.7/site-packages/flask/__init__.pyc"]

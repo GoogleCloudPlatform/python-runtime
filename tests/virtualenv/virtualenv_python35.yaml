@@ -47,7 +47,7 @@ commandTests:
     setup: [["virtualenv", "-p", "python3.5", "/env"],
             ["pip", "install", "flask"]]
     command: ["python", "-c", "import flask; print(flask.__file__)"]
-    expectedOutput: ["/env/lib/python3.5/site-packages/flask"]
+    expectedOutput: ["/env/lib/python3.5/site-packages/flask/__init__.py"]
 
   - name: "virtualenv35 test.support availability"
     setup: [["virtualenv", "-p", "python3.5", "/env"]]
