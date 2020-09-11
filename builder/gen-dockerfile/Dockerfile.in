@@ -9,7 +9,7 @@ ENV PATH /env/bin:$PATH
 ADD requirements.txt /builder/
 #virtualenv's pip is pegged at version 10.0, removing so
 #newer versions get picked up
-RUN rm -f /env/bin/pip* && pip install -r /builder/requirements.txt
+RUN pip install -r /builder/requirements.txt
 ADD . /builder/
 WORKDIR /workspace
 ENTRYPOINT [ "python", "/builder/gen_dockerfile.py" ]
