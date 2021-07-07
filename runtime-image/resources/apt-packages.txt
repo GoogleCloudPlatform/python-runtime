@@ -4,7 +4,6 @@ mercurial
 pkg-config
 wget
 # debian-provided interpreters
-python-pip
 python2.7
 python2.7-dev
 # Dependenies for third-party Python packages

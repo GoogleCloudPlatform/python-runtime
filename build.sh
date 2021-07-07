@@ -24,7 +24,7 @@ test=0 # Should run standard test suite?
 
 local=0 # Should run using local Docker daemon instead of GCR?
 
-os_base=ubuntu16 # Which operating system base to use
+os_base=ubuntu18 # Which operating system base to use
 interpreter=0 # Should build interpreters instead of images
 
 # Note that $gcloud_cmd has spaces in it
@@ -48,7 +48,7 @@ Options:
   --[no]test: Run basic tests (default true if no options set)
   --[no]client_test: Run Google Cloud Client Library tests (default false)
   --[no]local: Build images using local Docker daemon (default false)
-  --os_base: Which OS image to build on top of [debian8, ubuntu16]
+  --os_base: Which OS image to build on top of [debian8, ubuntu16, ubuntu18]
 "
 }
 
@@ -119,6 +119,10 @@ while [ $# -gt 0 ]; do
       os_base=ubuntu16
       shift
       ;;
+    --os_base=ubuntu18)
+      os_base=ubuntu18
+      shift
+      ;;
     --test)
       test=1
       shift
@@ -156,8 +160,13 @@ fi
 # Pick OS image to use as base
 if [ "${os_base}" == "debian8" ]; then
   export OS_BASE_IMAGE="gcr.io/google-appengine/debian8:latest"
-else
+elif [ "${os_base}" == "ubuntu16" ]; then
   export OS_BASE_IMAGE="gcr.io/gcp-runtimes/ubuntu_16_0_4:latest"
+elif [ "${os_base}" == "ubuntu18" ]; then
+  export OS_BASE_IMAGE="gcr.io/gcp-runtimes/ubuntu_18_0_4:latest"
+else
+  echo "Unsupported OS base image: $OS_BASE_IMAGE"
+  exit 1
 fi
 export STAGING_IMAGE="${DOCKER_NAMESPACE}/python:${TAG}"
 echo "Using base image name ${STAGING_IMAGE}"
