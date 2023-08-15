@@ -53,7 +53,7 @@ extras==1.0.0
 fabric==2.3.1
 fixtures==3.0.0
 flake8==3.5.0
-flask==1.0.2
+flask==2.2.5
 funcsigs==1.0.2
 functools32==3.2.3.post2
 futures==3.2.0
