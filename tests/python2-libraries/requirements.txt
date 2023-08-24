@@ -132,7 +132,7 @@ pycparser==2.18
 pycrypto==2.6.1
 pycurl==7.43.0.2
 pyflakes==2.0.0
-pygments==2.2.0
+pygments==2.15.0
 pyjwt==1.6.4
 pylibmc==1.5.2
 pylint==1.9.3
