@@ -192,7 +192,7 @@ unidecode==1.0.22
 unittest2==1.1.0
 uritemplate==3.0.0
 urllib3==1.26.5
-uwsgi==2.0.17.1
+uwsgi==2.0.22
 versiontools==1.9.1
 virtualenv==16.0.0
 waitress==2.1.2
