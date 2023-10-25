@@ -7,4 +7,4 @@ gunicorn==19.9.0
 itsdangerous==0.24
 Jinja2==2.10
 MarkupSafe==1.1.1
-Werkzeug==2.2.3
+Werkzeug==3.0.1
