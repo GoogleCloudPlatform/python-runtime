@@ -110,7 +110,7 @@ oauthlib==2.1.0
 ordereddict==1.1
 oslo.config==6.4.0
 pandas==0.23.4
-paramiko==2.4.1
+paramiko==3.4.0
 passlib==1.7.1
 paste==2.0.3
 pastedeploy==1.5.2
