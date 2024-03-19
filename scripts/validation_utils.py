@@ -63,15 +63,15 @@ def get_field_value(container, field_name, field_type):
     if not isinstance(value, field_type):
         # list('some string') is a successful type cast as far as Python
         # is concerned, but doesn't exactly produce the results we want.
-        # We have a whitelist of conversions we will attempt.
-        whitelist = (
+        # We have a allowlist of conversions we will attempt.
+        allowlist = (
             (float, str),
             (int, str),
             (str, float),
             (str, int),
             (int, float),
             )
-        if (type(value), field_type) not in whitelist:
+        if (type(value), field_type) not in allowlist:
             raise ValueError(msg.format(field_name, field_type, type(value)))
 
     try:
