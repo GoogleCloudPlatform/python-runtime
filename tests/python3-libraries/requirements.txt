@@ -166,7 +166,7 @@ south==1.0.2
 sphinx==1.7.7
 sqlalchemy-migrate==0.11.0
 sqlalchemy==1.2.11
-sqlparse==0.4.4
+sqlparse==0.5.0
 statsd==3.3.0
 stevedore==1.29.0
 testrepository==0.0.20
