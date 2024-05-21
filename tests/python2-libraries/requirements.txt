@@ -137,7 +137,7 @@ pyjwt==1.6.4
 pylibmc==1.5.2
 pylint==1.9.3
 pymongo==3.7.1
-pymysql==0.9.2
+pymysql==1.1.1
 pyopenssl==18.0.0
 pyparsing==2.2.0
 pyramid==1.9.2
