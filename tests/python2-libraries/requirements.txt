@@ -197,7 +197,7 @@ versiontools==1.9.1
 virtualenv==16.0.0
 waitress==2.1.2
 warlock==1.3.0
-webob==1.8.2
+webob==1.8.8
 websocket-client==0.51.0
 webtest==2.0.30
 werkzeug==2.2.3
