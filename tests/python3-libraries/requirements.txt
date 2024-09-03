@@ -37,7 +37,7 @@ decorator==4.3.0
 django-celery==3.2.2
 django-debug-toolbar==1.9.1
 django-extensions==2.1.1
-django==2.2.28
+django==3.2.25
 django_compress==1.0.1
 djangorestframework==3.8.2
 docker-py==1.10.6
