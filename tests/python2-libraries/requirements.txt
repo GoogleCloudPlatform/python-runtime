@@ -27,7 +27,7 @@ click==6.7
 cliff==2.13.0
 cmd2==0.8.9
 colorama==0.3.9
-configobj==5.0.6
+configobj==5.0.9
 cov-core==1.15.0
 coverage==4.5.1
 coveralls==1.4.0
