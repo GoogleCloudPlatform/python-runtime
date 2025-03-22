@@ -3,7 +3,7 @@ enum-compat==0.0.2
 eventlet==0.24.1
 Flask==2.2.5
 greenlet==0.4.14
-gunicorn==19.9.0
+gunicorn==23.0.0
 itsdangerous==0.24
 Jinja2==2.10
 MarkupSafe==1.1.1
