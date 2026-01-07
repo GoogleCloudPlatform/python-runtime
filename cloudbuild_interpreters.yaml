@@ -24,10 +24,10 @@ steps:
   waitFor: ['interpreter-builder']
 
 # Upload them to tbe build-id location
-- name: gcr.io/cloud-builders/gsutil:latest
-  args: ['cp', '/workspace/runtime-image/*.tar.gz', 'gs://python-interpreters/$BUILD_ID/']
+- name: gcr.io/cloud-builders/gcloud:latest
+  args: ['storage', 'cp', '/workspace/runtime-image/*.tar.gz', 'gs://python-interpreters/$BUILD_ID/']
   waitFor: ['build-3.4', 'build-3.5', 'build-3.6', 'build-3.7']
 
 # "Tag" this as latest
-- name: gcr.io/cloud-builders/gsutil:latest
-  args: ['cp', '-r', 'gs://python-interpreters/$BUILD_ID/*', 'gs://python-interpreters/latest/']
+- name: gcr.io/cloud-builders/gcloud:latest
+  args: ['storage', 'cp', '--recursive', 'gs://python-interpreters/$BUILD_ID/*', 'gs://python-interpreters/latest/']
