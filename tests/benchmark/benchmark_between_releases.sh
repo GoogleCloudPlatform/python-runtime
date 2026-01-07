@@ -51,14 +51,14 @@ done
 gcloud config set project cloud-python-runtime-qa
 
 # Get the list of existing release data on Cloud Storage and skip if the current TAG1 or TAG2 existing in the list
-gsutil ls gs://python-runtime-benchmark > existing_releases
+gcloud storage ls gs://python-runtime-benchmark > existing_releases
 
 for container_tag in $TAG1 $TAG2; do
     if grep --fixed-strings --quiet "$container_tag" existing_releases; then
         echo "Performance data of $container_tag existed, so skip processing it."
     else
         # Upload the CSV files to Cloud Storage
-        gsutil cp -r $container_tag gs://python-runtime-benchmark
+        gcloud storage cp --recursive $container_tag gs://python-runtime-benchmark
         # Load the CSV files from Cloud Storage to Big Query table
         # Load the performance data of each function
         for path_to_file in $container_tag/py2.7.csv $container_tag/py3.4.csv $container_tag/py3.5.csv; do
